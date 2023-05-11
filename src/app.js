@@ -1,4 +1,4 @@
-import { CornerStoneWrapper } from 'slice-view/cornerstone-wrapper';
+import { CornerStoneWrapper } from 'slice-view';
 
 export const App = () => {
   return (
