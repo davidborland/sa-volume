@@ -5,6 +5,7 @@
   "dependencies": {
     "@cornerstonejs/core": "^0.44.0",
     "@cornerstonejs/nifti-image-loader": "^1.0.9",
+    "@cornerstonejs/streaming-image-volume-loader": "^0.20.2",
     "@kitware/vtk.js": "^27.4.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

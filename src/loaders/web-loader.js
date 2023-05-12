@@ -1,3 +1,5 @@
+// Taken from https://www.cornerstonejs.org/live-examples/webloader
+
 import * as cornerstone from '@cornerstonejs/core';
 const canvas = document.createElement('canvas');
 let lastImageIdDrawn;
