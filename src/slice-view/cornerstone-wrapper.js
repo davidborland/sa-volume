@@ -3,7 +3,7 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneNiftiImageLoader from '@cornerstonejs/nifti-image-loader';
 import * as cornerstoneWebImageLoader from 'cornerstone-web-image-loader';
 import { ViewportType } from '@cornerstonejs/core/dist/esm/enums';
-import { registerTestImageLoader, testMetaDataProvider } from 'utils';
+import { registerTestImageLoader, testMetaDataProvider } from 'loaders';
 
 const { init, registerImageLoader, imageLoader, metaData, RenderingEngine } = cornerstone;
 
