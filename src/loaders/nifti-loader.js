@@ -4,7 +4,7 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneNIFTIImageLoader from '@cornerstonejs/nifti-image-loader';
 import { niftiMetaDataProvider } from './nifti-meta-data-provider';
 
-export function register() {
+export function registerNifti() {
   // Register the nifti image loader
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
 
@@ -25,7 +25,7 @@ export function register() {
  * Uses the NIFTI image loader to fetch metadata of a NIFTI, cache it in cornerstone,
  * and return a list of imageIds for the frames.
  */
-export async function loadImage(imageId) {
+export async function loadNiftiImage(imageId) {
   const colonIndex = imageId.indexOf(':');
   const scheme = imageId.substring(0, colonIndex);
   if (scheme !== 'nifti') {

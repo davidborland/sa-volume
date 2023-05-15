@@ -173,7 +173,7 @@ function loadImage(uri, imageId) {
   };
 }
 
-export function registerTestImageLoader(imageLoader) {
+export function registerWebImageLoader(imageLoader) {
   imageLoader.registerImageLoader('web', _loadImageIntoBuffer);
 }
 

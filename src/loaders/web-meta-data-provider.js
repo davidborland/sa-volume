@@ -1,10 +1,10 @@
 // Taken from https://www.cornerstonejs.org/live-examples/webloader
 
 // Add hardcoded meta data provider for color images
-export function tiffMetaDataProvider(type, imageId, imageIds) {
+export function webMetaDataProvider(type, imageId, imageIds) {
   const colonIndex = imageId.indexOf(':');
   const scheme = imageId.substring(0, colonIndex);
-  if (scheme !== 'tiff') return;
+  if (scheme !== 'web') return;
 
   if (type === 'imagePixelModule') {
     const imagePixelModule = {

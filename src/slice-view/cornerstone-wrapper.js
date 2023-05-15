@@ -3,12 +3,12 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneNiftiImageLoader from '@cornerstonejs/nifti-image-loader';
 import * as cornerstoneWebImageLoader from 'cornerstone-web-image-loader';
 import { ViewportType } from '@cornerstonejs/core/dist/esm/enums';
-import { registerTestImageLoader, testMetaDataProvider } from 'loaders';
+import { registerWebImageLoader, webMetaDataProvider } from 'loaders';
 
 const { init, registerImageLoader, imageLoader, metaData, RenderingEngine } = cornerstone;
 
-registerTestImageLoader(imageLoader);
-metaData.addProvider((type, imageId) => testMetaDataProvider(type, imageId, imageIds), 10000);
+registerWebImageLoader(imageLoader);
+metaData.addProvider((type, imageId) => webMetaDataProvider(type, imageId, imageIds), 10000);
 
 const url = `nifti:${ process.env.PUBLIC_URL }/data/test_image.nii`;
 //const url = 'nifti:https://nifti.nimh.nih.gov/nifti-1/data/avg152T1_LR_nifti.hdr.gz';
