@@ -1,49 +1,47 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { init, RenderingEngine } from '@cornerstonejs/core';
 import { ViewportType } from '@cornerstonejs/core/dist/esm/enums';
 import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
 
-const url = `${ process.env.PUBLIC_URL }/data/test_image.nii`;
+export const NiftiWrapper = ({ url }) => {
+  const [viewport, setViewport] = useState();
+  const div =  useRef();
 
-export const NiftiWrapper = () => {
-  const ref =  useRef();
-
-  // Probably should be moved to a hook?
   useEffect(() => {
-    const getData = async () => {
-      await init();
+    const initialize = async () => {
+      if (!viewport) {
+        await init();
 
-      registerNiftiImageLoader();
-      const imageIds = await loadNiftiImage(`nifti:${ url }#z`);
+        registerNiftiImageLoader();
 
-      const renderingEngineId = 'nifti-engine';
-      const renderingEngine = new RenderingEngine(renderingEngineId);
-  
-      const viewportId = 'nifti-viewport';
-      const viewportInput = {
-        viewportId: viewportId,
-        element: ref.current,
-        type: ViewportType.STACK
-      };
+        const renderingEngineId = 'nifti-engine';
+        const renderingEngine = new RenderingEngine(renderingEngineId);
+    
+        const viewportId = 'nifti-viewport';
+        const viewportInput = {
+          viewportId: viewportId,
+          element: div.current,
+          type: ViewportType.STACK
+        };
 
-      renderingEngine.setViewports([viewportInput]);
-      const viewport = renderingEngine.getStackViewports()[0];
-      viewport.setStack(imageIds);
-
-      let z = 0;
-      let direction = -1;
-      setInterval(() => {      
-        viewport.setImageIdIndex(z);
-
-        if (z >= imageIds.length - 1 || z <= 0) direction *= -1; 
-        z += direction;
-      }, 1000);
+        renderingEngine.setViewports([viewportInput]);
+        setViewport(renderingEngine.getStackViewports()[0]);
+      }
     };
 
-    getData();
-  }, []);
+    initialize();
+  }, [viewport]);
+
+  useEffect(() => {
+    const loadImage = async url => {
+      const imageIds = await loadNiftiImage(`nifti:${ url }`);
+      viewport.setStack(imageIds);
+    }
+
+    if (viewport && url) loadImage(url);
+  }, [viewport, url]);
 
   return (
-    <div ref={ ref } style={{ width: 500, height: 500 }} />
+    <div ref={ div } style={{ width: 500, height: 500 }} />
   );
 };
