@@ -4,7 +4,7 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneNIFTIImageLoader from '@cornerstonejs/nifti-image-loader';
 import { niftiMetaDataProvider } from './nifti-meta-data-provider';
 
-export function registerNifti() {
+export function registerNiftiImageLoader() {
   // Register the nifti image loader
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
 

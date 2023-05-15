@@ -1,4 +1,4 @@
-// Taken from https://www.cornerstonejs.org/live-examples/webloader
+// From https://www.cornerstonejs.org/live-examples/webloader
 
 // Add hardcoded meta data provider for color images
 export function webMetaDataProvider(type, imageId, imageIds) {

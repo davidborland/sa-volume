@@ -1,4 +1,4 @@
-// Taken from https://www.cornerstonejs.org/live-examples/webloader
+// From https://www.cornerstonejs.org/live-examples/webloader
 
 import * as cornerstone from '@cornerstonejs/core';
 const canvas = document.createElement('canvas');
@@ -8,10 +8,6 @@ let lastImageIdDrawn;
 
 /**
  * creates a cornerstone Image object for the specified Image and imageId
- *
- * @param image - An Image
- * @param imageId - the imageId for this image
- * @returns Cornerstone Image Object
  */
 function createImage(image, imageId) {
   // extract the attributes we need

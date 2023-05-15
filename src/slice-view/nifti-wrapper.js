@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
-import { init, RenderingEngine, Enums } from '@cornerstonejs/core';
+import { init, RenderingEngine } from '@cornerstonejs/core';
 import { ViewportType } from '@cornerstonejs/core/dist/esm/enums';
-import { registerNifti, loadNiftiImage } from 'loaders';
+import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
 
 const url = `${ process.env.PUBLIC_URL }/data/test_image.nii`;
 
@@ -13,10 +13,8 @@ export const NiftiWrapper = () => {
     const getData = async () => {
       await init();
 
-      registerNifti();
+      registerNiftiImageLoader();
       const imageIds = await loadNiftiImage(`nifti:${ url }#z`);
-
-      console.log(imageIds);
 
       const renderingEngineId = 'engine';
       const renderingEngine = new RenderingEngine(renderingEngineId);
