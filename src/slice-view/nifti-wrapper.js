@@ -7,6 +7,7 @@ export const NiftiWrapper = ({ url }) => {
   const [viewport, setViewport] = useState();
   const div =  useRef();
 
+  // Initialize
   useEffect(() => {
     const initialize = async () => {
       if (!viewport) {
@@ -32,6 +33,7 @@ export const NiftiWrapper = ({ url }) => {
     initialize();
   }, [viewport]);
 
+  // Load image
   useEffect(() => {
     const loadImage = async url => {
       const imageIds = await loadNiftiImage(`nifti:${ url }`);
