@@ -4,7 +4,7 @@ import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneNIFTIImageLoader from '@cornerstonejs/nifti-image-loader';
 import { niftiMetaDataProvider } from './nifti-meta-data-provider';
 
-export function registerNifti() {
+export function registerNiftiImageLoader() {
   // Register the nifti image loader
   cornerstoneNIFTIImageLoader.external.cornerstone = cornerstone;
 
@@ -36,6 +36,10 @@ export async function loadNiftiImage(imageId) {
   // Load the image (it will be stored in the cache, and the metadata also)
   const imageIdObject = cornerstoneNIFTIImageLoader.nifti.ImageId.fromURL(imageId);
   const image = await cornerstone.imageLoader.loadAndCacheImage(imageIdObject.url);
+console.log(imageId);
+console.log(imageIdObject);
+console.log(image);
+
 
   // Get the number of frames from the metadata the image loader provides
   const numberOfFrames = cornerstone.metaData.get('multiFrame', image.imageId).numberOfFrames;
