@@ -16,10 +16,10 @@ export const NiftiWrapper = () => {
       registerNiftiImageLoader();
       const imageIds = await loadNiftiImage(`nifti:${ url }#z`);
 
-      const renderingEngineId = 'engine';
+      const renderingEngineId = 'nifti-engine';
       const renderingEngine = new RenderingEngine(renderingEngineId);
   
-      const viewportId = 'viewport';
+      const viewportId = 'nifti-viewport';
       const viewportInput = {
         viewportId: viewportId,
         element: ref.current,
