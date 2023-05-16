@@ -1,16 +1,8 @@
-import { RenderingEngine, Types, Enums } from '@cornerstonejs/core';
-import {
-  initDemo,
-  createImageIdsAndCacheMetaData,
-  setTitleAndDescription,
-  addDropdownToToolbar,
-} from 'helpers';
+import { init, RenderingEngine, Types, Enums } from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
+import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
 
-// This is for debugging purposes
-console.warn(
-  'Click on index.ts to open source code for this example --------->'
-);
+const url = `${ process.env.PUBLIC_URL }/data/test_image.nii`;
 
 const { LengthTool, ToolGroupManager, Enums: csToolsEnums } = cornerstoneTools;
 
@@ -18,21 +10,12 @@ const { MouseBindings, ToolModes } = csToolsEnums;
 const { ViewportType } = Enums;
 
 // ======== Set up page ======== //
-
 const content = document.getElementById('root');
 const element = document.createElement('div');
-const title = document.createElement('div');
-const description = document.createElement('div');
 const toolbar = document.createElement('div');
 
-title.id = 'demo-title';
-description.id = 'demo-description';
 toolbar.id = 'demo-toolbar';
-
-content.appendChild(title);
-content.appendChild(description);
 content.appendChild(toolbar);
-setTitleAndDescription('Annotation Tool Modes', 'Annotation tools mode');
 
 // Disable right click context menu so we can have right click tools
 element.oncontextmenu = (e) => e.preventDefault();
@@ -67,6 +50,38 @@ const toolModes = [
 ];
 const selectedToolMode = ToolModes.Active;
 
+function addDropdownToToolbar(props) {
+  const { values, defaultValue } = props.options;
+  const select = document.createElement('select');
+
+  select.id = props.id;
+
+  values.forEach((value) => {
+    const optionElement = document.createElement('option');
+
+    optionElement.value = String(value);
+    optionElement.innerText = String(value);
+
+    if (value === defaultValue) {
+      optionElement.selected = true;
+    }
+
+    select.append(optionElement);
+  });
+
+  select.onchange = (evt) => {
+    const selectElement = evt.target;
+
+    if (selectElement) {
+      props.onSelectedValueChange(selectElement.value);
+    }
+  };
+
+  props.container = props.container ?? document.getElementById('demo-toolbar');
+  props.container.append(select);
+}
+
+
 addDropdownToToolbar({
   options: { values: toolModes, defaultValue: selectedToolMode },
   onSelectedValueChange: (newToolMode) => {
@@ -90,7 +105,8 @@ addDropdownToToolbar({
  */
 async function run() {
   // Init Cornerstone and related libraries
-  await initDemo();
+  await init();
+  await cornerstoneTools.init();
 
   // Add tools to Cornerstone3D
   cornerstoneTools.addTool(LengthTool);
@@ -112,6 +128,7 @@ async function run() {
     ],
   });
 
+  /*
   // Get Cornerstone imageIds and fetch metadata into RAM
   const imageIds = await createImageIdsAndCacheMetaData({
     StudyInstanceUID:
@@ -120,6 +137,9 @@ async function run() {
       '1.3.6.1.4.1.14519.5.2.1.7009.2403.226151125820845824875394858561',
     wadoRsRoot: 'https://d3t6nz73ql33tx.cloudfront.net/dicomweb',
   });
+  */
+  registerNiftiImageLoader();
+  const imageIds = await loadNiftiImage(`nifti:${ url }#z`);
 
   // Instantiate a rendering engine
   const renderingEngineId = 'myRenderingEngine';
