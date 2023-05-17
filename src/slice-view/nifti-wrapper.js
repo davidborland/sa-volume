@@ -3,9 +3,11 @@ import { RenderingEngine } from '@cornerstonejs/core';
 import { ViewportType } from '@cornerstonejs/core/dist/esm/enums';
 import { ToolGroupManager, StackScrollMouseWheelTool } from '@cornerstonejs/tools';
 import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
+import { useOnnx } from 'hooks';
 
 export const NiftiWrapper = ({ url }) => {
   const [viewport, setViewport] = useState();
+  const onnx = useOnnx(`${ process.env.PUBLIC_URL }/data/images/test_image_01.png`);  // XXX: Hardcoding for now
   const div = useRef();
   const toolGroup = useRef();
 
@@ -34,8 +36,7 @@ export const NiftiWrapper = ({ url }) => {
         toolGroup.current.addTool(StackScrollMouseWheelTool.toolName);
         toolGroup.current.addViewport(viewportId, renderingEngineId);
 
-        toolGroup.current.setToolActive(StackScrollMouseWheelTool.toolName);
-        
+        toolGroup.current.setToolActive(StackScrollMouseWheelTool.toolName);        
       } 
     }
   }, [viewport]);
