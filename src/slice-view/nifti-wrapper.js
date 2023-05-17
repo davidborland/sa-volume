@@ -15,22 +15,8 @@ export const NiftiWrapper = ({ url }) => {
 
   // Initialize
   useEffect(() => {
-const init = async () => {
     const toolGroupId = 'niftiToolGroup';
     if (!viewport) {
-
-
-      await cornerstone.init();
-
-      tools.init();
-      tools.addTool(tools.StackScrollMouseWheelTool);
-      tools.addTool(tools.ZoomTool);
-
-
-
-
-
-
       registerNiftiImageLoader();
 
       const renderingEngineId = 'nifti-engine';
@@ -62,14 +48,9 @@ const init = async () => {
         toolGroup.current.addViewport(viewportId, renderingEngineId);
 
         toolGroup.current.setToolActive(ZoomTool.toolName, { bindings: [{ mouseButton: Enums.MouseBindings.Primary }]});
-
-        console.log("LDSKNF")
         
-      }
-    }
-  };
-
-init();
+      } 
+    }   
 
     return () => {
       //ToolGroupManager.destroyToolGroup(toolGroupId);
