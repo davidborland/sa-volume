@@ -6,9 +6,7 @@ import { handleImageScale } from 'utils';
 import npyjs from 'npyjs';
 const ort = require('onnxruntime-web');
 
-const MODEL_PATH = `data/onnx/sam_onnx_quantized_example.onnx`;
-
-console.log(MODEL_PATH);
+const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 
 export const useOnnx = imagePath => {
   const [model, setModel] = useState(null); // ONNX model
@@ -66,7 +64,7 @@ export const useOnnx = imagePath => {
   };
   
   // Decode a Numpy file into a tensor. 
-  const loadNpyTensor = async (tensorFile: string, dType: string) => {
+  const loadNpyTensor = async (tensorFile, dType) => {
     let npLoader = new npyjs();
     const npArray = await npLoader.load(tensorFile);
     const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
