@@ -10,7 +10,6 @@ const initializeCornerstone = async () => {
 
   await tools.init();
   tools.addTool(tools.StackScrollMouseWheelTool);
-  tools.addTool(tools.ZoomTool);
 };
 
 await initializeCornerstone();
