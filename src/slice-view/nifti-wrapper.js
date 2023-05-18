@@ -58,30 +58,25 @@ export const NiftiWrapper = ({ url }) => {
     if (viewport && url) loadImage(url);
   }, [viewport, url]);
 
-  const getClickPoint = evt => {
+  const getClickPoints = evt => {
     const x = evt.nativeEvent.offsetX / 800 * 48;
     const y = evt.nativeEvent.offsetY / 800 * 48;
 
-    const click = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
+    const point = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
+    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
 
-    return click;
+    return points;
   }
 
   const onClick = evt => {
-    const point = getClickPoint(evt);
-    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
-
-    console.log(points);
+    const points = getClickPoints(evt);
 
     setClicks(points);
     setPoints(points);
   };
 
   const onMouseMove = evt => {
-    const point = getClickPoint(evt);
-    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
-
-    console.log(points);
+    const points= getClickPoints(evt);
 
     setPoints(points);
   };
@@ -95,9 +90,11 @@ export const NiftiWrapper = ({ url }) => {
   };
 
   const onSliceChange = evt => {
-    setClicks();
+    setClicks();    
     setImageName(getImageName(+evt.target.value));
   };
+
+console.log(clicks);
 
   return (
     <>
@@ -140,6 +137,23 @@ export const NiftiWrapper = ({ url }) => {
             alt='mask' 
           /> 
         }
+        { clicks?.map(({ x, y, clickType }, i) => (
+          <div
+            key={ i }
+            style={{
+              position: 'absolute',
+              // XXX: Hack for + / - offset below
+              top: y / 48 * 800 - (clickType === 0 ? 26 : 25),
+              left: x / 48 * 800 - (clickType === 0 ? 6 : 11),
+              pointerEvents: 'none',
+              color: '#993404',
+              fontWeight: 'bold',
+              fontSize: 32
+            }}
+          >
+            { clickType === 0 ? '-' : '+' }
+          </div>
+        ))}
       </div>
       <label>Threshold</label><input type='range' min={ -20 } max={ 20 } defaultValue={ 0 } onMouseUp={ onThresholdChange } />
       <label>Slice</label><input type='range' min={ 0 } max={ 7 } defaultValue={ 0 } onChange={ onSliceChange } />
