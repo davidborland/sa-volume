@@ -6,8 +6,8 @@ import { handleImageScale, onnxMaskToImage, modelData } from 'utils';
 import npyjs from 'npyjs';
 const ort = require('onnxruntime-web');
 
-//const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
-const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
+const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
+//const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
 export const useOnnx = (imagePath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model

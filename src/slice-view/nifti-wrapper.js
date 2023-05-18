@@ -5,23 +5,16 @@ import { ToolGroupManager, StackScrollMouseWheelTool } from '@cornerstonejs/tool
 import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
 import { useOnnx } from 'hooks';
 
-//const clicks = [
-  //{ x: 20, y: 20, clickType: 1 },
-  //{ x: 15, y: 30, clickType: 1 }
-//];
-
 const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image_`;
+const getImageName = index => `${ imageBaseName }0${ index + 1 }.png`;
 
 export const NiftiWrapper = ({ url }) => {
   const [viewport, setViewport] = useState();
   const [clicks, setClicks] = useState();
+  const [points, setPoints] = useState();
   const [threshold, setThreshold] = useState(0);
-  const [imageName, setImageName] = useState(imageBaseName + '01.png')
-  const { image, maskImage } = useOnnx(
-    imageName,
-    clicks,
-    threshold
-  );
+  const [imageName, setImageName] = useState(imageBaseName + '01.png');
+  const { image, maskImage } = useOnnx(imageName, points, threshold);
   const div = useRef();
   const toolGroup = useRef();
 
@@ -65,28 +58,36 @@ export const NiftiWrapper = ({ url }) => {
     if (viewport && url) loadImage(url);
   }, [viewport, url]);
 
-  const onClick = evt => {
+  const getClickPoint = evt => {
     const x = evt.nativeEvent.offsetX / 800 * 48;
     const y = evt.nativeEvent.offsetY / 800 * 48;
 
     const click = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
 
-    if (evt.ctrlKey) {
-      const multiClicks = [click];
-      const n = 8;
-      const radius = 2;
-      for (let i = 0; i < n; i++) {
-        let angle = (i / n) * 2 * Math.PI;
-        let xx = x + radius * Math.cos(angle);
-        let yy = y + radius * Math.sin(angle);
-        multiClicks.push({ x: xx, y: yy, clickType: 1 });
-      }
-      console.log(multiClicks);
-      setClicks(multiClicks);
-    }
-    else {
-      setClicks((evt.altKey || evt.shiftKey)&& clicks ? [...clicks, click] : [click]);
-    }
+    return click;
+  }
+
+  const onClick = evt => {
+    const point = getClickPoint(evt);
+    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
+
+    console.log(points);
+
+    setClicks(points);
+    setPoints(points);
+  };
+
+  const onMouseMove = evt => {
+    const point = getClickPoint(evt);
+    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
+
+    console.log(points);
+
+    setPoints(points);
+  };
+
+  const onMouseLeave = () => {
+    setPoints(clicks);
   };
 
   const onThresholdChange = evt => {
@@ -95,13 +96,24 @@ export const NiftiWrapper = ({ url }) => {
 
   const onSliceChange = evt => {
     setClicks();
-    setImageName(`${ imageBaseName }0${ +evt.target.value + 1 }.png`);
+    setImageName(getImageName(+evt.target.value));
   };
 
   return (
     <>
-      <div ref={ div } style={{ width: '100%', aspectRatio: '1 / 1' }} />
-      <div style={{ position: 'relative' }} onClick={ onClick }>
+      <div 
+        ref={ div } 
+        style={{ 
+          width: '100%', 
+          aspectRatio: '1 / 1' 
+        }} 
+      />
+      <div 
+        style={{ position: 'relative' }} 
+        onMouseMove={ onMouseMove }
+        onMouseLeave={ onMouseLeave }
+        onClick={ onClick }        
+      >
         { image && 
           <img 
             style={{ 
