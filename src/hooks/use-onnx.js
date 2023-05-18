@@ -6,9 +6,10 @@ import { handleImageScale, onnxMaskToImage, modelData } from 'utils';
 import npyjs from 'npyjs';
 const ort = require('onnxruntime-web');
 
-const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
+//const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
+const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
-export const useOnnx = (imagePath, clicks) => {
+export const useOnnx = (imagePath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
   const [image, setImage] = useState(null); // Image
@@ -99,7 +100,7 @@ export const useOnnx = (imagePath, clicks) => {
           const output = results[model.outputNames[0]];
           // The predicted mask returned from the ONNX model is an array which is 
           // rendered as an HTML image using onnxMaskToImage() from maskUtils.tsx.
-          setmaskImage(onnxMaskToImage(output.data, output.dims[2], output.dims[3]));
+          setmaskImage(onnxMaskToImage(output.data, output.dims[2], output.dims[3], threshold));
         }
       } catch (e) {
         console.log(e);
@@ -107,7 +108,7 @@ export const useOnnx = (imagePath, clicks) => {
     };
 
     runONNX();
-  }, [model, clicks, tensor, modelScale]);
+  }, [model, clicks, threshold, tensor, modelScale]);
 
   return { image, maskImage };
 };
