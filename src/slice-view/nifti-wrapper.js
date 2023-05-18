@@ -69,10 +69,24 @@ export const NiftiWrapper = ({ url }) => {
     const x = evt.nativeEvent.offsetX / 800 * 48;
     const y = evt.nativeEvent.offsetY / 800 * 48;
 
-    
-
     const click = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
-    setClicks((evt.altKey || evt.shiftKey)&& clicks ? [...clicks, click] : [click]);
+
+    if (evt.ctrlKey) {
+      const multiClicks = [click];
+      const n = 8;
+      const radius = 2;
+      for (let i = 0; i < n; i++) {
+        let angle = (i / n) * 2 * Math.PI;
+        let xx = x + radius * Math.cos(angle);
+        let yy = y + radius * Math.sin(angle);
+        multiClicks.push({ x: xx, y: yy, clickType: 1 });
+      }
+      console.log(multiClicks);
+      setClicks(multiClicks);
+    }
+    else {
+      setClicks((evt.altKey || evt.shiftKey)&& clicks ? [...clicks, click] : [click]);
+    }
   };
 
   const onThresholdChange = evt => {
@@ -116,7 +130,7 @@ export const NiftiWrapper = ({ url }) => {
         }
       </div>
       <label>Threshold</label><input type='range' min={ -20 } max={ 20 } defaultValue={ 0 } onMouseUp={ onThresholdChange } />
-      <label>Slice</label><input type='range' min={ 0 } max={ 7 } defaultValue={ 0 } onMouseUp={ onSliceChange } />
+      <label>Slice</label><input type='range' min={ 0 } max={ 7 } defaultValue={ 0 } onChange={ onSliceChange } />
     </>
   );
 };
