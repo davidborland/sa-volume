@@ -13,11 +13,12 @@ export const NiftiWrapper = ({ url }) => {
   const [clicks, setClicks] = useState();
   const [points, setPoints] = useState();
   const [threshold, setThreshold] = useState(0);
-  const [imageName, setImageName] = useState(imageBaseName + '01.png');
+  const [imageName, setImageName] = useState(getImageName(0));
   const { image, maskImage } = useOnnx(imageName, points, threshold);
   const div = useRef();
   const toolGroup = useRef();
-
+  const slice = useRef(0);
+/*
   // Initialize
   useEffect(() => {
     if (!viewport) {
@@ -57,7 +58,7 @@ export const NiftiWrapper = ({ url }) => {
 
     if (viewport && url) loadImage(url);
   }, [viewport, url]);
-
+*/
   const getClickPoints = evt => {
     const x = evt.nativeEvent.offsetX / 800 * 48;
     const y = evt.nativeEvent.offsetY / 800 * 48;
@@ -89,15 +90,21 @@ export const NiftiWrapper = ({ url }) => {
     setThreshold(+evt.target.value);
   };
 
-  const onSliceChange = evt => {
-    setClicks();    
-    setImageName(getImageName(+evt.target.value));
-  };
+  const onWheel = evt => {
+    const y = evt.deltaY;
+    const newSlice = y < 0 ? Math.max(0, slice.current - 1) : 
+      y > 0 ? Math.min(slice.current + 1, 7) : 
+      slice.current;
 
-console.log(clicks);
+    if (newSlice !== slice.current) {
+      slice.current = newSlice;
+      setImageName(getImageName(newSlice));      
+    }
+  };
 
   return (
     <>
+{/*
       <div 
         ref={ div } 
         style={{ 
@@ -105,11 +112,13 @@ console.log(clicks);
           aspectRatio: '1 / 1' 
         }} 
       />
+*/}
       <div 
         style={{ position: 'relative' }} 
         onMouseMove={ onMouseMove }
         onMouseLeave={ onMouseLeave }
         onClick={ onClick }        
+        onWheel={ onWheel }
       >
         { image && 
           <img 
@@ -137,7 +146,20 @@ console.log(clicks);
             alt='mask' 
           /> 
         }
-        { clicks?.map(({ x, y, clickType }, i) => (
+        { points?.length >= 2 &&
+          <div
+            style={{
+              position: 'absolute',
+              top: points[0].y / 48 * 800,
+              left: points[0].x / 48 * 800,
+              height: (points[1].y - points[0].y) / 48 * 800,
+              width: (points[1].x - points[0].x) / 48 * 800,
+              pointerEvents: 'none',
+              border: '2px dashed #993404'
+            }}
+          />
+        }
+        { points?.length >= 2 && points.slice(2).map(({ x, y, clickType }, i) => (
           <div
             key={ i }
             style={{
@@ -151,12 +173,12 @@ console.log(clicks);
               fontSize: 32
             }}
           >
-            { clickType === 0 ? '-' : '+' }
+            { clickType === 0 ? '-' : '+'}
           </div>
         ))}
-      </div>
-      <label>Threshold</label><input type='range' min={ -20 } max={ 20 } defaultValue={ 0 } onMouseUp={ onThresholdChange } />
-      <label>Slice</label><input type='range' min={ 0 } max={ 7 } defaultValue={ 0 } onChange={ onSliceChange } />
+      </div>      
+      <div><label>Slice: { slice.current }</label></div>
+      <div><label>Threshold</label><input type='range' min={ -20 } max={ 20 } defaultValue={ 0 } onMouseUp={ onThresholdChange } /></div>
     </>
   );
 };
