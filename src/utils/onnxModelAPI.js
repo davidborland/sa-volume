@@ -23,8 +23,6 @@ export const modelData = ({ clicks, tensor, modelScale }) => {
   if (clicks && clicks.length >= 2) {
     let n = clicks.length;
 
-    console.log(clicks);
-
     pointCoords = new Float32Array(2 * n);
     pointLabels = new Float32Array(n);
 

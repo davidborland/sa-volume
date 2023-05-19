@@ -5,14 +5,21 @@ import { ToolGroupManager, StackScrollMouseWheelTool } from '@cornerstonejs/tool
 import { registerNiftiImageLoader, loadNiftiImage } from 'loaders';
 import { useOnnx } from 'hooks';
 
-const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image_`;
+//const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`;
+const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`;
+const numImages = 8;
+const imageSize = 128;
+const displaySize = 800;
+
 const getImageName = index => `${ imageBaseName }0${ index + 1 }.png`;
+const imageToDisplay = v => v / imageSize * displaySize;
+const displayToImage = v => v / displaySize * imageSize;
 
 export const NiftiWrapper = ({ url }) => {
   const [viewport, setViewport] = useState();
   const [clicks, setClicks] = useState();
   const [points, setPoints] = useState();
-  const [threshold, setThreshold] = useState(0);
+  const [threshold, setThreshold] = useState(0.5);
   const [imageName, setImageName] = useState(getImageName(0));
   const { image, maskImage } = useOnnx(imageName, points, threshold);
   const div = useRef();
@@ -60,8 +67,8 @@ export const NiftiWrapper = ({ url }) => {
   }, [viewport, url]);
 */
   const getClickPoints = evt => {
-    const x = evt.nativeEvent.offsetX / 800 * 48;
-    const y = evt.nativeEvent.offsetY / 800 * 48;
+    const x = displayToImage(evt.nativeEvent.offsetX);
+    const y = displayToImage(evt.nativeEvent.offsetY);
 
     const point = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
     const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
@@ -87,13 +94,13 @@ export const NiftiWrapper = ({ url }) => {
   };
 
   const onThresholdChange = evt => {
-    setThreshold(+evt.target.value);
+    setThreshold(+evt.target.value / 100);
   };
 
   const onWheel = evt => {
     const y = evt.deltaY;
     const newSlice = y < 0 ? Math.max(0, slice.current - 1) : 
-      y > 0 ? Math.min(slice.current + 1, 7) : 
+      y > 0 ? Math.min(slice.current + 1, numImages - 1) : 
       slice.current;
 
     if (newSlice !== slice.current) {
@@ -150,10 +157,10 @@ export const NiftiWrapper = ({ url }) => {
           <div
             style={{
               position: 'absolute',
-              top: points[0].y / 48 * 800,
-              left: points[0].x / 48 * 800,
-              height: (points[1].y - points[0].y) / 48 * 800,
-              width: (points[1].x - points[0].x) / 48 * 800,
+              top: imageToDisplay(points[0].y),
+              left: imageToDisplay(points[0].x),
+              height: imageToDisplay((points[1].y - points[0].y)),
+              width: imageToDisplay((points[1].x - points[0].x)),
               pointerEvents: 'none',
               border: '2px dashed #993404'
             }}
@@ -165,8 +172,8 @@ export const NiftiWrapper = ({ url }) => {
             style={{
               position: 'absolute',
               // XXX: Hack for + / - offset below
-              top: y / 48 * 800 - (clickType === 0 ? 26 : 25),
-              left: x / 48 * 800 - (clickType === 0 ? 6 : 11),
+              top: imageToDisplay(y) - (clickType === 0 ? 26 : 25),
+              left: imageToDisplay(x) - (clickType === 0 ? 6 : 11),
               pointerEvents: 'none',
               color: '#993404',
               fontWeight: 'bold',
@@ -178,7 +185,7 @@ export const NiftiWrapper = ({ url }) => {
         ))}
       </div>      
       <div><label>Slice: { slice.current }</label></div>
-      <div><label>Threshold</label><input type='range' min={ -20 } max={ 20 } defaultValue={ 0 } onMouseUp={ onThresholdChange } /></div>
+      <div><label>Threshold</label><input type='range' min={ 0 } max={ 100 } defaultValue={ 50 } onMouseUp={ onThresholdChange } /></div>
     </>
   );
 };
