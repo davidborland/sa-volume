@@ -9,7 +9,7 @@ const ort = require('onnxruntime-web');
 const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 //const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
-export const useOnnx = (imagePath, clicks, threshold) => {
+export const useSam = (imagePath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
   const [image, setImage] = useState(null); // Image
