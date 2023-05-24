@@ -107,7 +107,7 @@ export const SamWrapper = () => {
   };
 
   const onMouseLeave = () => {
-    setPoints(points);
+    //setPoints(points);
   };
 
   const onKeyDown = evt => {
@@ -159,7 +159,10 @@ export const SamWrapper = () => {
   return (
     <>
       <div 
-        style={{ position: 'relative' }} 
+        style={{ 
+          position: 'relative', 
+          userSelect: 'none' 
+        }} 
         onMouseDown={ onMouseDown }        
         onMouseMove={ onMouseMove }
         onMouseUp={ onMouseUp }
