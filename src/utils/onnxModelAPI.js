@@ -19,7 +19,7 @@ export const modelData = ({ clicks, tensor, modelScale }) => {
   Additionally, the ONNX model does not threshold the output mask logits. To obtain a binary mask, threshold at sam.mask_threshold (equal to 0.0).
   */
 
-  // Test box
+  // Must have a box first
   if (clicks && clicks.length >= 2) {
     let n = clicks.length;
 

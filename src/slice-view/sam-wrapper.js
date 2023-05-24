@@ -48,27 +48,7 @@ export const SamWrapper = () => {
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
 
   const { image, maskImage } = useSam(imageName, combinedPoints, threshold);
-/*
-  const getClickPoints = evt => {
-    const { x: eventX, y: eventY } = getEventPosition(evt);
-  
-    const x = displayToImage(eventX);
-    const y = displayToImage(eventY);
-  
-    const point = { x: x, y: y, clickType: evt.shiftKey ? 0 : 1 };
-    const points = (evt.altKey || evt.shiftKey) && clicks ? [...clicks, point] : [point];
-  
-    return points;
-  }
-  */
-/*
-  const onClick = evt => {
-    const points = getClickPoints(evt);
 
-    setClicks(points);
-    setPoints(points);
-  };
-*/
   const onMouseDown = evt => {        
     mouseDownPoint.current = getPoint(evt);
     mouseMoved.current = false;
@@ -106,10 +86,6 @@ export const SamWrapper = () => {
     setTempPoints();
   };
 
-  const onMouseLeave = () => {
-    //setPoints(points);
-  };
-
   const onKeyDown = evt => {
     evt.preventDefault();
 
@@ -133,6 +109,12 @@ export const SamWrapper = () => {
       case 'Shift':
         setTempPoints();
         break;
+
+      case 'Escape':
+        setPoints();
+        setTempPoints();
+        break;
+
       default:
     }
   };
@@ -161,12 +143,12 @@ export const SamWrapper = () => {
       <div 
         style={{ 
           position: 'relative', 
-          userSelect: 'none' 
+          userSelect: 'none',
+          outline: 'none'
         }} 
         onMouseDown={ onMouseDown }        
         onMouseMove={ onMouseMove }
         onMouseUp={ onMouseUp }
-        onMouseLeave={ onMouseLeave }
         onKeyDown={ onKeyDown }
         onKeyUp={ onKeyUp }
         onWheel={ onWheel }

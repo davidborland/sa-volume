@@ -13,7 +13,7 @@ export const useSam = (imagePath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
   const [image, setImage] = useState(null); // Image
-  const [maskImage, setmaskImage] = useState(null); // Mask image
+  const [maskImage, setMaskImage] = useState(null); // Mask image
 
   // The ONNX model expects the input to be rescaled to 1024. 
   // The modelScale state variable keeps track of the scale values.
@@ -27,8 +27,8 @@ export const useSam = (imagePath, clicks, threshold) => {
         if (MODEL_PATH === undefined) return;
         const model = await InferenceSession.create(MODEL_PATH);
         setModel(model);
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error);
       }
     };
     initModel();
@@ -84,26 +84,34 @@ export const useSam = (imagePath, clicks, threshold) => {
           clicks === null ||
           tensor === null ||
           modelScale === null
-        )
+        ) {
+          setMaskImage(null);
           return;
+        }
         else {
-          // Preapre the model input in the correct format for SAM. 
+          // Prepare the model input in the correct format for SAM. 
           // The modelData function is from onnxModelAPI.tsx.
           const feeds = modelData({
             clicks,
             tensor,
             modelScale,
           });
-          if (feeds === undefined) return;
+          
+          if (feeds === undefined) {
+            setMaskImage(null);
+            return;
+          };
+
           // Run the SAM ONNX model with the feeds returned from modelData()
           const results = await model.run(feeds);
           const output = results[model.outputNames[0]];
+
           // The predicted mask returned from the ONNX model is an array which is 
           // rendered as an HTML image using onnxMaskToImage() from maskUtils.tsx.
-          setmaskImage(onnxMaskToImage(output.data, output.dims[2], output.dims[3], threshold));
+          setMaskImage(onnxMaskToImage(output.data, output.dims[2], output.dims[3], threshold));
         }
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error);
       }
     };
 
