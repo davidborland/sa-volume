@@ -47,8 +47,9 @@ export const SamWrapper = () => {
   const mousePoint = useRef();
   const mouseMoved = useRef(false);
   const slice = useRef(0);
-  const label = useRef(1);
+  const label = useRef(0);
   const savedMask = useRef(null);
+  const overWrite = useRef(false);
 
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
 
@@ -58,7 +59,7 @@ export const SamWrapper = () => {
     if (!savedMask.current && !mask) return;
 
     const labelMask = mask ? applyLabel(mask, label.current) : null;
-    const displayMask = combineMasks(savedMask.current, labelMask);
+    const displayMask = combineMasks(savedMask.current, labelMask, overWrite.current);
 
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
   }, [mask]);
@@ -72,7 +73,6 @@ export const SamWrapper = () => {
     evt.preventDefault();
 
     mousePoint.current = getPoint(evt);
-    mouseMoved.current = true;
 
     if (mouseDownPoint.current) {
       // Box
@@ -81,7 +81,12 @@ export const SamWrapper = () => {
       setTempPoints([
         { ...mouseDownPoint.current, clickType: 2 },
         { ...mousePoint.current, clickType: 3 }
-      ])
+      ]);
+
+      if (!mouseMoved.current) {
+        savedMask.current = combineMasks(savedMask.current, mask ? applyLabel(mask, label.current) : null, overWrite.current);
+        label.current++;        
+      }
     }
     else {
       if (evt.altKey || evt.shiftKey) {
@@ -89,6 +94,8 @@ export const SamWrapper = () => {
         setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
       }
     }
+
+    mouseMoved.current = true;
   };
 
   const onMouseUp = evt => {
@@ -111,7 +118,12 @@ export const SamWrapper = () => {
         // Point
         setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
         break;
-      default:
+      
+      case 'Control':
+        overWrite.current = true;
+        break;
+      
+        default:
     }
   };
 
@@ -122,6 +134,10 @@ export const SamWrapper = () => {
       case 'Alt':
       case 'Shift':
         setTempPoints();
+        break;
+
+      case 'Control':
+        overWrite.current = false;
         break;
 
       case 'Escape':
@@ -146,6 +162,11 @@ export const SamWrapper = () => {
     if (newSlice !== slice.current) {
       slice.current = newSlice;
       setImageName(getImageName(newSlice));      
+
+      setTimeout(() => {
+        setPoints();   
+        setTempPoints();
+      }, 1);
     }
   };
 

@@ -1,3 +1,15 @@
+const hexToRGB = v => {
+  const r = parseInt(v.slice(0, 2), 16);
+  const g = parseInt(v.slice(2, 4), 16);
+  const b = parseInt(v.slice(4, 6), 16);
+  
+  return [r, g, b];
+};
+
+// d3 category 10
+const colors = '1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf'
+  .match(/.{1,6}/g).filter((_, i) => i !== 7).map(hexToRGB) ?? [];
+
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
   const maxValue = Math.max(...input);
@@ -10,21 +22,18 @@ export const thresholdOnnxMask = (input, threshold) => {
 
 // Convert the onnx model mask to ImageData
 const maskToImageData = (input, width, height) => {
-  const [r, g, b, a] = [0, 114, 189, 255]; // the masks's blue color
-  const [r2, g2, b2, a2] = [189, 114, 0, 255]; // the masks's red color
   const arr = new Uint8ClampedArray(4 * width * height).fill(0);
 
   for (let i = 0; i < input.length; i++) {
-    // Threshold the onnx model mask prediction at 0.0
-    // This is equivalent to thresholding the mask using predictor.model.mask_threshold
-    // in python
+    const label = input[i];
 
-    const v = input[i];
-    if (v > 0) {
-      arr[4 * i + 0] = v > 1 ? r2 : r;
-      arr[4 * i + 1] = v > 1 ? g2 : g;
-      arr[4 * i + 2] = v > 1 ? b2 : b;
-      arr[4 * i + 3] = v > 1 ? a2 : a;
+    if (label > 0) {
+      const [r, g, b] = colors[(label -1) % colors.length];
+
+      arr[4 * i + 0] = r;
+      arr[4 * i + 1] = g;
+      arr[4 * i + 2] = b;
+      arr[4 * i + 3] = 255;
     }
   }
 
@@ -41,8 +50,8 @@ function imageDataToImage(imageData) {
 
 // Canvas elements can be created from ImageData
 function imageDataToCanvas(imageData) {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
   canvas.width = imageData.width;
   canvas.height = imageData.height;
   ctx?.putImageData(imageData, 0, 0);
