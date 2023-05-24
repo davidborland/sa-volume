@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useSam } from 'hooks';
 
 //const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`;
@@ -34,17 +34,18 @@ const pairs = a => a.reduce((pairs, item, i) => {
   return pairs;
 }, []);
 
-const pointsEqual = (p1, p2) => p1.displayX === p2.displayX && p1.displayY === p2.displayY;
-
 export const SamWrapper = () => {
-  const [mouseDownPoint, setMouseDownPoint] = useState();
   const [points, setPoints] = useState();
   const [tempPoints, setTempPoints] = useState();
   const [threshold, setThreshold] = useState(0.5);
   const [imageName, setImageName] = useState(getImageName(0));
+
+  const mouseDownPoint = useRef();
+  const mousePoint = useRef();
+  const mouseMoved = useRef(false);
   const slice = useRef(0);
 
-  const combinedPoints = combineArrays(points, tempPoints);
+  const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
 
   const { image, maskImage } = useSam(imageName, combinedPoints, threshold);
 /*
@@ -69,46 +70,71 @@ export const SamWrapper = () => {
   };
 */
   const onMouseDown = evt => {        
-    setMouseDownPoint(getPoint(evt));
-  };
-
-  const onMouseUp = evt => {
-    if (!mouseDownPoint) return;
-
-    const point = getPoint(evt);
-
-    if (pointsEqual(mouseDownPoint, point)) {
-      console.log('click')
-
-      
-    }
-    else {
-      setPoints(combineArrays(points, tempPoints));
-      setMouseDownPoint();
-      setTempPoints();
-    }
-
-    console.log(evt);
+    mouseDownPoint.current = getPoint(evt);
+    mouseMoved.current = false;
   };
 
   const onMouseMove = evt => {  
     evt.preventDefault();
 
-    if (mouseDownPoint) {
+    mousePoint.current = getPoint(evt);
+    mouseMoved.current = true;
+
+    if (mouseDownPoint.current) {
       // Box
+      setPoints();
+
       setTempPoints([
-        { ...mouseDownPoint, clickType: 2 },
-        { ...getPoint(evt), clickType: 3 }
+        { ...mouseDownPoint.current, clickType: 2 },
+        { ...mousePoint.current, clickType: 3 }
       ])
     }
     else {
-      // Point
-      //setTempPoints([{ ...getPoint(evt), clickType: 1 }])
+      if (evt.altKey || evt.shiftKey) {
+        // Point
+        setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
+      }
     }
+  };
+
+  const onMouseUp = evt => {
+    if (!mouseDownPoint.current) return;
+
+    mouseDownPoint.current = null;
+    
+    setPoints(combineArrays(points, tempPoints));
+    setTempPoints();
   };
 
   const onMouseLeave = () => {
     setPoints(points);
+  };
+
+  const onKeyDown = evt => {
+    evt.preventDefault();
+
+    if (evt.repeat) return;
+
+    switch (evt.key) {
+      case 'Alt':
+      case 'Shift':
+        // Point
+        setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
+        break;
+      default:
+    }
+  };
+
+  const onKeyUp = evt => {
+    evt.preventDefault();
+
+    switch (evt.key) {
+      case 'Alt':
+      case 'Shift':
+        setTempPoints();
+        break;
+      default:
+    }
   };
 
   const onThresholdChange = evt => {
@@ -127,13 +153,8 @@ export const SamWrapper = () => {
     }
   };
 
-  console.log(points, tempPoints);
-  console.log(combinedPoints);
-
   const boxes = combinedPoints ? pairs(combinedPoints.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
   const justPoints = combinedPoints ? combinedPoints.filter(({ clickType }) => clickType === 0 || clickType === 1) : [];
-
-console.log(boxes);
 
   return (
     <>
@@ -143,7 +164,10 @@ console.log(boxes);
         onMouseMove={ onMouseMove }
         onMouseUp={ onMouseUp }
         onMouseLeave={ onMouseLeave }
+        onKeyDown={ onKeyDown }
+        onKeyUp={ onKeyUp }
         onWheel={ onWheel }
+        tabIndex={ 0 }
       >
         { image && 
           <img 
