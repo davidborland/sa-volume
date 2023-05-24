@@ -1,5 +1,7 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useSam } from 'hooks';
+import { applyLabel, combineMasks, maskToImage } from 'utils';
+import { math } from '@cornerstonejs/tools/dist/esm/utilities';
 
 //const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`;
 const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`;
@@ -39,15 +41,27 @@ export const SamWrapper = () => {
   const [tempPoints, setTempPoints] = useState();
   const [threshold, setThreshold] = useState(0.5);
   const [imageName, setImageName] = useState(getImageName(0));
+  const [maskImage, setMaskImage] = useState();
 
   const mouseDownPoint = useRef();
   const mousePoint = useRef();
   const mouseMoved = useRef(false);
   const slice = useRef(0);
+  const label = useRef(1);
+  const savedMask = useRef(null);
 
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
 
-  const { image, maskImage } = useSam(imageName, combinedPoints, threshold);
+  const { image, mask } = useSam(imageName, combinedPoints, threshold);
+
+  useEffect(() => {
+    if (!savedMask.current && !mask) return;
+
+    const labelMask = mask ? applyLabel(mask, label.current) : null;
+    const displayMask = combineMasks(savedMask.current, labelMask);
+
+    setMaskImage(maskToImage(displayMask, imageSize, imageSize));
+  }, [mask]);
 
   const onMouseDown = evt => {        
     mouseDownPoint.current = getPoint(evt);
@@ -190,7 +204,8 @@ export const SamWrapper = () => {
               height: imageToDisplay((box[1].y - box[0].y)),
               width: imageToDisplay((box[1].x - box[0].x)),
               pointerEvents: 'none',
-              border: '2px dashed #993404'
+              border: '2px dashed #993404',
+              opacity: 0.75
             }}
           />
         ))}        
@@ -205,7 +220,8 @@ export const SamWrapper = () => {
               pointerEvents: 'none',
               color: '#993404',
               fontWeight: 'bold',
-              fontSize: 32
+              fontSize: 32,
+              opacity: 0.75
             }}
           >
             { clickType === 0 ? '-' : '+'}

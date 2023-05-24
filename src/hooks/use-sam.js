@@ -2,7 +2,7 @@
 
 import { InferenceSession } from 'onnxruntime-web';
 import { useState, useEffect } from 'react';
-import { handleImageScale, onnxMaskToImage, modelData } from 'utils';
+import { handleImageScale, thresholdOnnxMask, modelData } from 'utils';
 import npyjs from 'npyjs';
 const ort = require('onnxruntime-web');
 
@@ -13,7 +13,7 @@ export const useSam = (imagePath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
   const [image, setImage] = useState(null); // Image
-  const [maskImage, setMaskImage] = useState(null); // Mask image
+  const [mask, setMask] = useState(null); // Mask
 
   // The ONNX model expects the input to be rescaled to 1024. 
   // The modelScale state variable keeps track of the scale values.
@@ -85,7 +85,7 @@ export const useSam = (imagePath, clicks, threshold) => {
           tensor === null ||
           modelScale === null
         ) {
-          setMaskImage(null);
+          setMask(null);
           return;
         }
         else {
@@ -98,7 +98,7 @@ export const useSam = (imagePath, clicks, threshold) => {
           });
           
           if (feeds === undefined) {
-            setMaskImage(null);
+            setMask(null);
             return;
           };
 
@@ -106,9 +106,8 @@ export const useSam = (imagePath, clicks, threshold) => {
           const results = await model.run(feeds);
           const output = results[model.outputNames[0]];
 
-          // The predicted mask returned from the ONNX model is an array which is 
-          // rendered as an HTML image using onnxMaskToImage() from maskUtils.tsx.
-          setMaskImage(onnxMaskToImage(output.data, output.dims[2], output.dims[3], threshold));
+          // The predicted mask returned from the ONNX model is an array.
+          setMask(thresholdOnnxMask(output.data, threshold));
         }
       } catch (error) {
         console.log(error);
@@ -118,5 +117,5 @@ export const useSam = (imagePath, clicks, threshold) => {
     runONNX();
   }, [model, clicks, threshold, tensor, modelScale]);
 
-  return { image, maskImage };
+  return { image, mask };
 };
