@@ -163,10 +163,11 @@ export const SamWrapper = () => {
       slice.current = newSlice;
       setImageName(getImageName(newSlice));      
 
-      setTimeout(() => {
-        setPoints();   
-        setTempPoints();
-      }, 1);
+      setPoints();   
+      setTempPoints();
+
+      // XXX: Does this need to be state?
+      savedMask.current = null;        
     }
   };
 
