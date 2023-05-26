@@ -5,23 +5,31 @@ import { applyLabel, combineMasks, maskToImage } from 'utils';
 
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 
+const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x] : 0;
+
 export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
-  const [points, setPoints] = useState();
+  const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
   const [threshold, setThreshold] = useState(0.5);
   const [imageName, setImageName] = useState(imageNames[0]);
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
+  const [displayMask, setDisplayMask] = useState();
   const [maskImage, setMaskImage] = useState();
-  const [displaySize, setDisplaySize] = useState(100);
+  const [displaySize, setDisplaySize] = useState(1);
 
   const div = useRef();
+
   const mouseDownPoint = useRef();
   const mousePoint = useRef();
   const mouseMoved = useRef(false);
+  const mouseButton = useRef();
+
   const slice = useRef(0);
-  const label = useRef(0);
+  const sliceChanged = useRef(true);
+  const label = useRef(1);
+  const maxLabel = useRef(1);
   const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
 
@@ -60,16 +68,21 @@ export const SamWrapper = ({ imageInfo }) => {
     const labelMask = mask ? applyLabel(mask, label.current) : null;
     const displayMask = combineMasks(savedMask, labelMask, overWrite.current);
 
+    setDisplayMask(displayMask);
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
   }, [embeddingName, mask, imageSize]);
 
-  const onMouseDown = evt => {        
+  const onMouseDown = evt => {
     mouseDownPoint.current = getPoint(evt);
     mouseMoved.current = false;
+    mouseButton.current = evt.button;
   };
 
   const onMouseMove = evt => {  
-    evt.preventDefault();
+    evt.preventDefault();    
+
+    // Only deal with left click and drag
+    if (mouseButton.current !== 0) return;
 
     mousePoint.current = getPoint(evt);
 
@@ -87,7 +100,11 @@ export const SamWrapper = ({ imageInfo }) => {
           savedMasks.current[slice.current], 
           mask ? applyLabel(mask, label.current) : null, overWrite.current
         );
-        label.current++;        
+
+        if (!sliceChanged.current) {
+          label.current = maxLabel.current = maxLabel.current + 1;
+        }
+        sliceChanged.current = false;       
       }
     }
     else {
@@ -104,9 +121,21 @@ export const SamWrapper = ({ imageInfo }) => {
     if (!mouseDownPoint.current) return;
 
     mouseDownPoint.current = null;
-    
-    setPoints(combineArrays(points, tempPoints));
-    setTempPoints();
+
+    if (mouseButton.current === 0) {
+      // Left-click
+      setPoints(combineArrays(points, tempPoints));
+      setTempPoints();
+    }
+    else if (mouseButton.current === 2) {
+      savedMasks.current[slice.current] = combineMasks(
+        savedMasks.current[slice.current], 
+        mask ? applyLabel(mask, label.current) : null, overWrite.current
+      );
+
+      const point = getPoint(evt);
+      label.current = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+    }
   };
 
   const onKeyDown = evt => {
@@ -167,10 +196,9 @@ export const SamWrapper = ({ imageInfo }) => {
         mask ? applyLabel(mask, label.current) : null, overWrite.current
       );
 
-      // XXX: Total hack to simulate not changing label for new slice
-      label.current--;
-
       slice.current = newSlice;
+      sliceChanged.current = true;
+
       setImageName(imageNames[newSlice]);   
       setEmbeddingName(embeddingNames[newSlice]);
 
@@ -194,6 +222,7 @@ export const SamWrapper = ({ imageInfo }) => {
         onKeyDown={ onKeyDown }
         onKeyUp={ onKeyUp }
         onWheel={ onWheel }
+        onContextMenu={ evt => evt.preventDefault() }
         tabIndex={ 0 }
       >
         <SamDisplay 
