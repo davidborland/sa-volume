@@ -17,6 +17,7 @@ export const SamWrapper = ({ imageInfo }) => {
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [displayMask, setDisplayMask] = useState();
   const [maskImage, setMaskImage] = useState();
+  const [label, setLabel] =  useState(1);
   const [displaySize, setDisplaySize] = useState(1);
 
   const div = useRef();
@@ -28,7 +29,6 @@ export const SamWrapper = ({ imageInfo }) => {
 
   const slice = useRef(0);
   const sliceChanged = useRef(true);
-  const label = useRef(1);
   const maxLabel = useRef(1);
   const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
@@ -65,7 +65,7 @@ export const SamWrapper = ({ imageInfo }) => {
       return;
     }
 
-    const labelMask = mask ? applyLabel(mask, label.current) : null;
+    const labelMask = mask ? applyLabel(mask, label) : null;
     const displayMask = combineMasks(savedMask, labelMask, overWrite.current);
 
     setDisplayMask(displayMask);
@@ -98,11 +98,12 @@ export const SamWrapper = ({ imageInfo }) => {
       if (!mouseMoved.current) {
         savedMasks.current[slice.current] = combineMasks(
           savedMasks.current[slice.current], 
-          mask ? applyLabel(mask, label.current) : null, overWrite.current
+          mask ? applyLabel(mask, label) : null, overWrite.current
         );
 
         if (!sliceChanged.current) {
-          label.current = maxLabel.current = maxLabel.current + 1;
+          maxLabel.current = maxLabel.current + 1;
+          setLabel(maxLabel.current);
         }
         sliceChanged.current = false;       
       }
@@ -130,11 +131,11 @@ export const SamWrapper = ({ imageInfo }) => {
     else if (mouseButton.current === 2) {
       savedMasks.current[slice.current] = combineMasks(
         savedMasks.current[slice.current], 
-        mask ? applyLabel(mask, label.current) : null, overWrite.current
+        mask ? applyLabel(mask, label) : null, overWrite.current
       );
 
       const point = getPoint(evt);
-      label.current = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+      setLabel(getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize));
     }
   };
 
@@ -193,7 +194,7 @@ export const SamWrapper = ({ imageInfo }) => {
     if (newSlice !== slice.current) {      
       savedMasks.current[slice.current] = combineMasks(
         savedMasks.current[slice.current], 
-        mask ? applyLabel(mask, label.current) : null, overWrite.current
+        mask ? applyLabel(mask, label) : null, overWrite.current
       );
 
       slice.current = newSlice;
@@ -234,6 +235,7 @@ export const SamWrapper = ({ imageInfo }) => {
         />
       </div>      
       <div><label>Slice: { slice.current }</label></div>
+      <div><label>Label: { label }</label></div>
       <div><label>Threshold</label><input type='range' min={ 0 } max={ 100 } defaultValue={ 50 } onMouseUp={ onThresholdChange } /></div>
     </>
   );
