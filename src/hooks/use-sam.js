@@ -79,11 +79,11 @@ export const useSam = (imagePath, embeddingPath, clicks, threshold) => {
     const runONNX = async () => {
       try {
         if (
+          !clicks ||
           model === null ||
-          clicks === null ||
           tensor === null ||
           modelScale === null
-        ) {
+        ) {          
           setMask(null);
           return;
         }

@@ -38,7 +38,7 @@ const imageInfo2 = {
 
 export const App = () => {  
   //const wrapper = <NiftiWrapper url={ niftiUrl } />;
-  const wrapper = <SamWrapper imageInfo={ addNames(imageInfo1) } />
+  const wrapper = <SamWrapper imageInfo={ addNames(imageInfo2) } />
 
   return (
     <div style={{ width: 800 }}>

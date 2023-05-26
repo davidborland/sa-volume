@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
+import { SamDisplay } from './sam-display';
 import { useSam } from 'hooks';
 import { applyLabel, combineMasks, maskToImage } from 'utils';
 
@@ -30,10 +31,9 @@ export const SamWrapper = ({ imageInfo }) => {
   const mouseMoved = useRef(false);
   const slice = useRef(0);
   const label = useRef(0);
-  const savedMask = useRef(null);
+  const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
 
-  const imageToDisplay = v => v / imageSize * displaySize;
   const displayToImage = v => v / displaySize * imageSize;
 
   const getPoint = evt => {
@@ -59,13 +59,18 @@ export const SamWrapper = ({ imageInfo }) => {
   }, [displaySize]);
 
   useEffect(() => {
-    if (!savedMask.current && !mask) return;
+    const savedMask = savedMasks.current[slice.current];
+
+    if (!savedMask && !mask) {
+      setMaskImage(null);
+      return;
+    }
 
     const labelMask = mask ? applyLabel(mask, label.current) : null;
-    const displayMask = combineMasks(savedMask.current, labelMask, overWrite.current);
+    const displayMask = combineMasks(savedMask, labelMask, overWrite.current);
 
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
-  }, [mask]);
+  }, [embeddingName, mask, imageSize]);
 
   const onMouseDown = evt => {        
     mouseDownPoint.current = getPoint(evt);
@@ -87,7 +92,10 @@ export const SamWrapper = ({ imageInfo }) => {
       ]);
 
       if (!mouseMoved.current) {
-        savedMask.current = combineMasks(savedMask.current, mask ? applyLabel(mask, label.current) : null, overWrite.current);
+        savedMasks.current[slice.current] = combineMasks(
+          savedMasks.current[slice.current], 
+          mask ? applyLabel(mask, label.current) : null, overWrite.current
+        );
         label.current++;        
       }
     }
@@ -162,16 +170,21 @@ export const SamWrapper = ({ imageInfo }) => {
       y > 0 ? Math.min(slice.current + 1, numImages - 1) : 
       slice.current;
 
-    if (newSlice !== slice.current) {
+    if (newSlice !== slice.current) {      
+      savedMasks.current[slice.current] = combineMasks(
+        savedMasks.current[slice.current], 
+        mask ? applyLabel(mask, label.current) : null, overWrite.current
+      );
+
+      // XXX: Total hack to simulate not changing label for new slice
+      label.current--;
+
       slice.current = newSlice;
       setImageName(imageNames[newSlice]);   
-      setEmbeddingName(embeddingNames[newSlice]);     
+      setEmbeddingName(embeddingNames[newSlice]);
 
       setPoints();   
       setTempPoints();
-
-      // XXX: Does this need to be state?
-      savedMask.current = null;        
     }
   };
 
@@ -195,65 +208,13 @@ export const SamWrapper = ({ imageInfo }) => {
         onWheel={ onWheel }
         tabIndex={ 0 }
       >
-        { image && 
-          <img 
-            style={{ 
-              width: '100%', 
-              aspectRatio: '1 / 1', 
-              pointerEvents: 'none' 
-            }} 
-            src={ image.src } 
-            alt='original' 
-          /> 
-        }
-        { maskImage && 
-          <img 
-            style={{ 
-              width: '100%', 
-              aspectRatio: '1 / 1', 
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              pointerEvents: 'none',
-              opacity: 0.5
-            }} 
-            src={ maskImage.src } 
-            alt='mask' 
-          /> 
-        }
-        { boxes && boxes.map((box, i) => (
-          <div
-            key={ i }
-            style={{
-              position: 'absolute',
-              top: imageToDisplay(box[0].y),
-              left: imageToDisplay(box[0].x),
-              height: imageToDisplay((box[1].y - box[0].y)),
-              width: imageToDisplay((box[1].x - box[0].x)),
-              pointerEvents: 'none',
-              border: '2px dashed #993404',
-              opacity: 0.75
-            }}
-          />
-        ))}        
-        { justPoints && justPoints.map(({ x, y, clickType }, i) => (
-          <div
-            key={ i }
-            style={{
-              position: 'absolute',
-              // XXX: Hack for + / - offset below
-              top: imageToDisplay(y) - (clickType === 0 ? 26 : 25),
-              left: imageToDisplay(x) - (clickType === 0 ? 6 : 11),
-              pointerEvents: 'none',
-              color: '#993404',
-              fontWeight: 'bold',
-              fontSize: 32,
-              opacity: 0.75
-            }}
-          >
-            { clickType === 0 ? '-' : '+'}
-          </div>
-        ))}
+        <SamDisplay 
+          image={ image }
+          maskImage={ maskImage }
+          points={ combinedPoints }
+          imageSize={ imageSize }
+          displaySize={ displaySize }
+        />
       </div>      
       <div><label>Slice: { slice.current }</label></div>
       <div><label>Threshold</label><input type='range' min={ 0 } max={ 100 } defaultValue={ 50 } onMouseUp={ onThresholdChange } /></div>
