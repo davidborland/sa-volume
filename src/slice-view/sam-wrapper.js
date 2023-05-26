@@ -4,15 +4,6 @@ import { useSam } from 'hooks';
 import { applyLabel, combineMasks, maskToImage } from 'utils';
 
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
-const pairs = a => a.reduce((pairs, item, i) => {
-  if (i % 2 === 0) {
-    pairs.push([item]);
-  }
-  else {
-    pairs[pairs.length - 1].push(item);
-  }
-  return pairs;
-}, []);
 
 export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
@@ -187,9 +178,6 @@ export const SamWrapper = ({ imageInfo }) => {
       setTempPoints();
     }
   };
-
-  const boxes = combinedPoints ? pairs(combinedPoints.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
-  const justPoints = combinedPoints ? combinedPoints.filter(({ clickType }) => clickType === 0 || clickType === 1) : [];
 
   return (
     <>
