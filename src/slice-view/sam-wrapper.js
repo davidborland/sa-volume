@@ -1,29 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { useSam } from 'hooks';
 import { applyLabel, combineMasks, maskToImage } from 'utils';
-import { math } from '@cornerstonejs/tools/dist/esm/utilities';
-
-//const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`;
-const imageBaseName = `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`;
-const numImages = 8;
-const imageSize = 128;
-const displaySize = 800;
-
-const getImageName = index => `${ imageBaseName }0${ index + 1 }.png`;
-const imageToDisplay = v => v / imageSize * displaySize;
-const displayToImage = v => v / displaySize * imageSize;
-
-const getPoint = evt => {
-  const x = evt.nativeEvent.offsetX;
-  const y = evt.nativeEvent.offsetY;
-
-  return {
-    x: displayToImage(x),
-    y: displayToImage(y),
-    displayX: x,
-    displayY: y
-  };
-};
 
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 const pairs = a => a.reduce((pairs, item, i) => {
@@ -36,13 +13,18 @@ const pairs = a => a.reduce((pairs, item, i) => {
   return pairs;
 }, []);
 
-export const SamWrapper = () => {
+export const SamWrapper = ({ imageInfo }) => {
+  const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
+
   const [points, setPoints] = useState();
   const [tempPoints, setTempPoints] = useState();
   const [threshold, setThreshold] = useState(0.5);
-  const [imageName, setImageName] = useState(getImageName(0));
+  const [imageName, setImageName] = useState(imageNames[0]);
+  const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [maskImage, setMaskImage] = useState();
+  const [displaySize, setDisplaySize] = useState(100);
 
+  const div = useRef();
   const mouseDownPoint = useRef();
   const mousePoint = useRef();
   const mouseMoved = useRef(false);
@@ -51,9 +33,30 @@ export const SamWrapper = () => {
   const savedMask = useRef(null);
   const overWrite = useRef(false);
 
+  const imageToDisplay = v => v / imageSize * displaySize;
+  const displayToImage = v => v / displaySize * imageSize;
+
+  const getPoint = evt => {
+    const x = evt.nativeEvent.offsetX;
+    const y = evt.nativeEvent.offsetY;
+
+    return {
+      x: displayToImage(x),
+      y: displayToImage(y),
+      displayX: x,
+      displayY: y
+    };
+  };
+
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
 
-  const { image, mask } = useSam(imageName, combinedPoints, threshold);
+  const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
+
+  useEffect(() => {
+    if (div.current && div.current.clientWidth !== displaySize) {
+      setDisplaySize(div.current.clientWidth);
+    }
+  }, [displaySize]);
 
   useEffect(() => {
     if (!savedMask.current && !mask) return;
@@ -161,7 +164,8 @@ export const SamWrapper = () => {
 
     if (newSlice !== slice.current) {
       slice.current = newSlice;
-      setImageName(getImageName(newSlice));      
+      setImageName(imageNames[newSlice]);   
+      setEmbeddingName(embeddingNames[newSlice]);     
 
       setPoints();   
       setTempPoints();
@@ -177,6 +181,7 @@ export const SamWrapper = () => {
   return (
     <>
       <div 
+        ref={ div }
         style={{ 
           position: 'relative', 
           userSelect: 'none',

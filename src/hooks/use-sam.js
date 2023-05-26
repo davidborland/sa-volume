@@ -9,7 +9,7 @@ const ort = require('onnxruntime-web');
 const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 //const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
-export const useSam = (imagePath, clicks, threshold) => {
+export const useSam = (imagePath, embeddingPath, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
   const [image, setImage] = useState(null); // Image
@@ -41,11 +41,10 @@ export const useSam = (imagePath, clicks, threshold) => {
     loadImage(imageUrl);
 
     // Load the Segment Anything pre-computed embedding
-    const embeddingPath = imagePath.split('.')[0] + '.npy';
     Promise.resolve(loadNpyTensor(embeddingPath, 'float32')).then(
       (embedding) => setTensor(embedding)
     );
-  }, [imagePath]);
+  }, [imagePath, embeddingPath]);
 
   const loadImage = async (url) => {
     try {
