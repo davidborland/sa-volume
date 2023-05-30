@@ -24,11 +24,10 @@ export const SamWrapper = ({ imageInfo }) => {
 
   const mouseDownPoint = useRef();
   const mousePoint = useRef();
-  const mouseMoved = useRef(false);
+  //const mouseMoved = useRef(false);
   const mouseButton = useRef();
 
   const slice = useRef(0);
-  const sliceChanged = useRef(true);
   const maxLabel = useRef(1);
   const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
@@ -70,11 +69,14 @@ export const SamWrapper = ({ imageInfo }) => {
 
     setDisplayMask(displayMask);
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
-  }, [embeddingName, mask, imageSize]);
+  }, [embeddingName, mask, imageSize, label]);
 
   const onMouseDown = evt => {
+    // Check for only one click at a time
+    if (mouseDownPoint.current || mouseButton.current) return;
+
     mouseDownPoint.current = getPoint(evt);
-    mouseMoved.current = false;
+    //mouseMoved.current = false;
     mouseButton.current = evt.button;
   };
 
@@ -94,19 +96,14 @@ export const SamWrapper = ({ imageInfo }) => {
         { ...mouseDownPoint.current, clickType: 2 },
         { ...mousePoint.current, clickType: 3 }
       ]);
-
+/*
       if (!mouseMoved.current) {
         savedMasks.current[slice.current] = combineMasks(
           savedMasks.current[slice.current], 
           mask ? applyLabel(mask, label) : null, overWrite.current
         );
-
-        if (!sliceChanged.current) {
-          maxLabel.current = maxLabel.current + 1;
-          setLabel(maxLabel.current);
-        }
-        sliceChanged.current = false;       
-      }
+      }      
+*/      
     }
     else {
       if (evt.altKey || evt.shiftKey) {
@@ -115,28 +112,46 @@ export const SamWrapper = ({ imageInfo }) => {
       }
     }
 
-    mouseMoved.current = true;
+    //mouseMoved.current = true;
   };
 
   const onMouseUp = evt => {
-    if (!mouseDownPoint.current) return;
+    if (mouseButton.current !== evt.button) return;
 
-    mouseDownPoint.current = null;
-
-    if (mouseButton.current === 0) {
-      // Left-click
-      setPoints(combineArrays(points, tempPoints));
-      setTempPoints();
-    }
-    else if (mouseButton.current === 2) {
+    // Left or right mouse click
+    if (mouseButton.current === 0 || mouseButton.current === 2) {
+      // Save mask 
       savedMasks.current[slice.current] = combineMasks(
         savedMasks.current[slice.current], 
         mask ? applyLabel(mask, label) : null, overWrite.current
       );
-
-      const point = getPoint(evt);
-      setLabel(getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize));
     }
+
+    // Just right mouse click
+    if (mouseButton.current === 0) {
+      setPoints(combineArrays(points, tempPoints));
+      setTempPoints();
+    }
+    if (mouseButton.current === 2) {
+      // Pick for new label
+      const point = getPoint(evt);
+      const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+
+      if (newLabel === 0) {
+        maxLabel.current = maxLabel.current + 1;
+        setLabel(maxLabel.current);
+      }
+      else {
+        setLabel(newLabel);
+      }
+      
+      // Clear points
+      setPoints();
+      setTempPoints();
+    }
+
+    mouseDownPoint.current = null;
+    mouseButton.current = null;
   };
 
   const onKeyDown = evt => {
@@ -198,7 +213,6 @@ export const SamWrapper = ({ imageInfo }) => {
       );
 
       slice.current = newSlice;
-      sliceChanged.current = true;
 
       setImageName(imageNames[newSlice]);   
       setEmbeddingName(embeddingNames[newSlice]);
