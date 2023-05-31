@@ -23,9 +23,9 @@ export const SamWrapper = ({ imageInfo }) => {
   const div = useRef();
 
   const mouseDownPoint = useRef();
+  const mouseDownButton = useRef();
+  const mouseMoved = useRef(false);
   const mousePoint = useRef();
-  //const mouseMoved = useRef(false);
-  const mouseButton = useRef();
 
   const slice = useRef(0);
   const maxLabel = useRef(1);
@@ -50,12 +50,14 @@ export const SamWrapper = ({ imageInfo }) => {
 
   const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
 
+  // Update display size
   useEffect(() => {
     if (div.current && div.current.clientWidth !== displaySize) {
       setDisplaySize(div.current.clientWidth);
     }
   }, [displaySize]);
 
+  // Compute new mask
   useEffect(() => {
     const savedMask = savedMasks.current[slice.current];
 
@@ -73,85 +75,83 @@ export const SamWrapper = ({ imageInfo }) => {
 
   const onMouseDown = evt => {
     // Check for only one click at a time
-    if (mouseDownPoint.current || mouseButton.current) return;
+    if (mouseDownPoint.current || mouseDownButton.current) return;
 
     mouseDownPoint.current = getPoint(evt);
-    //mouseMoved.current = false;
-    mouseButton.current = evt.button;
+    mouseDownButton.current = evt.button;
+    mouseMoved.current = false;
   };
 
   const onMouseMove = evt => {  
     evt.preventDefault();    
 
-    // Only deal with left click and drag
-    if (mouseButton.current !== 0) return;
-
     mousePoint.current = getPoint(evt);
 
-    if (mouseDownPoint.current) {
+    if (mouseDownButton.current === 0) {
       // Box
       setPoints();
-
       setTempPoints([
         { ...mouseDownPoint.current, clickType: 2 },
         { ...mousePoint.current, clickType: 3 }
-      ]);
-/*
-      if (!mouseMoved.current) {
-        savedMasks.current[slice.current] = combineMasks(
-          savedMasks.current[slice.current], 
-          mask ? applyLabel(mask, label) : null, overWrite.current
-        );
-      }      
-*/      
+      ]);     
     }
-    else {
+    else if (!mouseDownButton.current){
       if (evt.altKey || evt.shiftKey) {
         // Point
         setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
       }
     }
 
-    //mouseMoved.current = true;
+    mouseMoved.current = true;
   };
 
   const onMouseUp = evt => {
-    if (mouseButton.current !== evt.button) return;
+    if (mouseDownButton.current !== evt.button) return;
 
-    // Left or right mouse click
-    if (mouseButton.current === 0 || mouseButton.current === 2) {
-      // Save mask 
-      savedMasks.current[slice.current] = combineMasks(
-        savedMasks.current[slice.current], 
-        mask ? applyLabel(mask, label) : null, overWrite.current
-      );
-    }
-
-    // Just right mouse click
-    if (mouseButton.current === 0) {
-      setPoints(combineArrays(points, tempPoints));
-      setTempPoints();
-    }
-    if (mouseButton.current === 2) {
-      // Pick for new label
-      const point = getPoint(evt);
-      const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
-
-      if (newLabel === 0) {
-        maxLabel.current = maxLabel.current + 1;
-        setLabel(maxLabel.current);
+    if (mouseMoved.current) {
+      // Drag
+      if (mouseDownButton.current === 0) {
+        // Save points
+        setPoints(tempPoints);
+        setTempPoints();
       }
-      else {
-        setLabel(newLabel);
-      }
-      
-      // Clear points
-      setPoints();
-      setTempPoints();
     }
+    else {
+      // Click
+      if (mouseDownButton.current === 0) {    
+        if (evt.altKey || evt.shiftKey) {
+          // Save points
+          setPoints(combineArrays(points, tempPoints));
+          setTempPoints();
+        }
+        else {
+          // Save mask 
+          savedMasks.current[slice.current] = combineMasks(
+            savedMasks.current[slice.current], 
+            mask ? applyLabel(mask, label) : null, overWrite.current
+          );        
+
+          // Pick for new label
+          const point = getPoint(evt);
+          const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+
+          if (newLabel === 0) {
+            maxLabel.current = maxLabel.current + 1;
+            setLabel(maxLabel.current);
+          }
+          else {
+            setLabel(newLabel);
+          }
+          
+          // Clear points
+          setPoints();
+          setTempPoints();
+        }
+      }
+    }    
 
     mouseDownPoint.current = null;
-    mouseButton.current = null;
+    mouseDownButton.current = null;
   };
 
   const onKeyDown = evt => {
@@ -167,10 +167,11 @@ export const SamWrapper = ({ imageInfo }) => {
         break;
       
       case 'Control':
+        // Overwrite
         overWrite.current = true;
         break;
       
-        default:
+      default:
     }
   };
 
