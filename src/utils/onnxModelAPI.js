@@ -1,4 +1,3 @@
-import { click } from "@testing-library/user-event/dist/click";
 import { Tensor } from "onnxruntime-web";
 
 export const modelData = ({ clicks, tensor, modelScale }) => {
@@ -20,13 +19,13 @@ export const modelData = ({ clicks, tensor, modelScale }) => {
   Additionally, the ONNX model does not threshold the output mask logits. To obtain a binary mask, threshold at sam.mask_threshold (equal to 0.0).
   */
 
-  if (clicks) {
+  if (clicks?.length > 0) {
+    const n = clicks.length;
+
     const hasBox = clicks.filter(({ clickType }) => clickType === 2).length > 0 &&
       clicks.filter(({ clickType }) => clickType === 3).length > 0;
 
     const padding = hasBox ? 0 : 1;
-
-    const n = clicks.length;
 
     // If there is no box input, a single padding point with 
     // label -1 and coordinates (0.0, 0.0) should be concatenated

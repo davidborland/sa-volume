@@ -6,6 +6,7 @@ import { applyLabel, combineMasks, maskToImage } from 'utils';
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 
 const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x] : 0;
+const deleteLabel = (mask, label) => mask.forEach((value, i, a) => { if (value === label) a[i] = 0 });
 
 export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
@@ -145,6 +146,19 @@ export const SamWrapper = ({ imageInfo }) => {
           // Clear points
           setPoints();
           setTempPoints();
+        }
+      }
+      else if (mouseDownButton.current === 2) {
+        // Delete
+        const point = getPoint(evt);
+        const label = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+
+        if (label !== 0) {
+          deleteLabel(savedMasks.current[slice.current], label);
+          const displayMask = combineMasks(savedMasks.current[slice.current]);
+
+          setDisplayMask(displayMask);
+          setMaskImage(maskToImage(displayMask, imageSize, imageSize));
         }
       }
     }    
