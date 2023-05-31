@@ -90,10 +90,16 @@ export const SamWrapper = ({ imageInfo }) => {
     if (mouseDownButton.current === 0) {
       // Box
       setPoints();
+
+      const top = Math.min(mouseDownPoint.current.y, mousePoint.current.y);
+      const left = Math.min(mouseDownPoint.current.x, mousePoint.current.x);
+      const bottom = Math.max(mouseDownPoint.current.y, mousePoint.current.y);
+      const right = Math.max(mouseDownPoint.current.x, mousePoint.current.x);
+
       setTempPoints([
-        { ...mouseDownPoint.current, clickType: 2 },
-        { ...mousePoint.current, clickType: 3 }
-      ]);     
+        { x: left, y: top, clickType: 2 },
+        { x: right, y: bottom, clickType: 3 }
+      ]);   
     }
     else if (!mouseDownButton.current){
       if (evt.altKey || evt.shiftKey) {
