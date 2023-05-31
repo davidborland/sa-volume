@@ -1,14 +1,4 @@
-const hexToRGB = v => {
-  const r = parseInt(v.slice(0, 2), 16);
-  const g = parseInt(v.slice(2, 4), 16);
-  const b = parseInt(v.slice(4, 6), 16);
-  
-  return [r, g, b];
-};
-
-// d3 category 10
-const colors = '1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf'
-  .match(/.{1,6}/g).filter((_, i) => i !== 7).map(hexToRGB) ?? [];
+import { getLabelColor } from 'utils';
 
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
@@ -28,7 +18,7 @@ const maskToImageData = (input, width, height) => {
     const label = input[i];
 
     if (label > 0) {
-      const [r, g, b] = colors[(label -1) % colors.length];
+      const [r, g, b] = getLabelColor(label);
 
       arr[4 * i + 0] = r;
       arr[4 * i + 1] = g;

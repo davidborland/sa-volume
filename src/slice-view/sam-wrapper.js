@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { SamDisplay } from './sam-display';
 import { useSam } from 'hooks';
-import { applyLabel, combineMasks, maskToImage } from 'utils';
+import { applyLabel, combineMasks, maskToImage, getLabelColorHex } from 'utils';
 
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 
@@ -262,9 +262,36 @@ export const SamWrapper = ({ imageInfo }) => {
           displaySize={ displaySize }
         />
       </div>      
-      <div><label>Slice: { slice.current }</label></div>
-      <div><label>Label: { label }</label></div>
-      <div><label>Threshold</label><input type='range' min={ 0 } max={ 100 } defaultValue={ 50 } onMouseUp={ onThresholdChange } /></div>
+      <div>
+        <label>Slice: { slice.current }</label>
+      </div>
+      <div 
+        style={{ 
+          display: 'flex', 
+          alignItems: 'baseline' 
+        }}
+      >
+        <label>Label: { label }</label>
+        <div 
+          style={{ 
+            background: getLabelColorHex(label), 
+            width: 20, 
+            height: '1em',
+            borderRadius: 5,
+            marginLeft: 5
+          }} 
+        />
+      </div>
+      <div>
+        <label>Threshold</label>
+        <input 
+          type='range' 
+          min={ 0 } 
+          max={ 100 } 
+          defaultValue={ 50 } 
+          onMouseUp={ onThresholdChange } 
+        />
+      </div>
     </>
   );
 };
