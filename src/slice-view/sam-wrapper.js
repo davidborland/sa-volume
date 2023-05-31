@@ -47,7 +47,6 @@ export const SamWrapper = ({ imageInfo }) => {
   };
 
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-
   const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
 
   // Update display size

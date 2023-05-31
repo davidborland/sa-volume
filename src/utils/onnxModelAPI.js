@@ -1,3 +1,4 @@
+import { click } from "@testing-library/user-event/dist/click";
 import { Tensor } from "onnxruntime-web";
 
 export const modelData = ({ clicks, tensor, modelScale }) => {
@@ -19,34 +20,19 @@ export const modelData = ({ clicks, tensor, modelScale }) => {
   Additionally, the ONNX model does not threshold the output mask logits. To obtain a binary mask, threshold at sam.mask_threshold (equal to 0.0).
   */
 
-  // Must have a box first
-  if (clicks && clicks.length >= 2) {
-    let n = clicks.length;
-
-    pointCoords = new Float32Array(2 * n);
-    pointLabels = new Float32Array(n);
-
-    // Add clicks and scale to what SAM expects
-    for (let i = 0; i < n; i++) {
-      pointCoords[2 * i] = clicks[i].x * modelScale.samScale;
-      pointCoords[2 * i + 1] = clicks[i].y * modelScale.samScale;
-      pointLabels[i] = i === 0 ? 2 : i === 1 ? 3 : clicks[i].clickType;
-    }
-
-    // Create the tensor
-    pointCoordsTensor = new Tensor("float32", pointCoords, [1, n, 2]);
-    pointLabelsTensor = new Tensor("float32", pointLabels, [1, n]);
-  }
-/*
-  // Check there are input click prompts
   if (clicks) {
-    let n = clicks.length;
+    const hasBox = clicks.filter(({ clickType }) => clickType === 2).length > 0 &&
+      clicks.filter(({ clickType }) => clickType === 3).length > 0;
+
+    const padding = hasBox ? 0 : 1;
+
+    const n = clicks.length;
 
     // If there is no box input, a single padding point with 
     // label -1 and coordinates (0.0, 0.0) should be concatenated
     // so initialize the array to support (n + 1) points.
-    pointCoords = new Float32Array(2 * (n + 1));
-    pointLabels = new Float32Array(n + 1);
+    pointCoords = new Float32Array(2 * (n + padding));
+    pointLabels = new Float32Array(n + padding);
 
     // Add clicks and scale to what SAM expects
     for (let i = 0; i < n; i++) {
@@ -57,15 +43,17 @@ export const modelData = ({ clicks, tensor, modelScale }) => {
 
     // Add in the extra point/label when only clicks and no box
     // The extra point is at (0, 0) with label -1
-    pointCoords[2 * n] = 0.0;
-    pointCoords[2 * n + 1] = 0.0;
-    pointLabels[n] = -1.0;
+    if (!hasBox) {
+      pointCoords[2 * n] = 0.0;
+      pointCoords[2 * n + 1] = 0.0; 
+      pointLabels[n] = -1.0;
+    }
 
     // Create the tensor
-    pointCoordsTensor = new Tensor("float32", pointCoords, [1, n + 1, 2]);
-    pointLabelsTensor = new Tensor("float32", pointLabels, [1, n + 1]);
+    pointCoordsTensor = new Tensor("float32", pointCoords, [1, n + padding, 2]);
+    pointLabelsTensor = new Tensor("float32", pointLabels, [1, n + padding]);
   }
-*/
+
   const imageSizeTensor = new Tensor("float32", [
     modelScale.height,
     modelScale.width,
