@@ -163,6 +163,8 @@ export const SamWrapper = ({ imageInfo }) => {
             mask ? applyLabel(mask, label) : null, overWrite.current
           );        
 
+          // XXX: Need to get point like in mouse move
+
           // Pick for new label
           const point = getPoint(evt);
           const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
@@ -277,6 +279,20 @@ export const SamWrapper = ({ imageInfo }) => {
 
   return (
     <>
+      <div>
+        <div>Left-click and drag:</div>
+        <ul>
+          <li>Draw bounding box to segment an object.</li>
+          <li>Hold Ctrl/Cmd to overwrite previous segmentations.</li>
+        </ul>
+        <div>Left-click:</div>
+        <ul>
+          <li>Confirm current segmentation.</li>
+          <li>Click the background to generate a new label or an object to continue editing that object.</li>           
+          <li>Hold Shift (background) or Alt (foreground) instead to add points to modify current segmentation.</li>
+        </ul>
+
+      </div>
       <div 
         ref={ div }
         style={{ 
