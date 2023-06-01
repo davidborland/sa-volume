@@ -4,6 +4,7 @@ import { useSam } from 'hooks';
 import { applyLabel, combineMasks, maskToImage, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
 
+// Utility functions
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 
@@ -16,8 +17,10 @@ const getRelativePosition = (evt, div) => {
 };
 
 export const SamWrapper = ({ imageInfo }) => {
+  // Get image information
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
+  // State
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
   const [threshold, setThreshold] = useState(0.5);
@@ -28,20 +31,29 @@ export const SamWrapper = ({ imageInfo }) => {
   const [label, setLabel] =  useState(1);
   const [displaySize, setDisplaySize] = useState(1);
 
+  // Div reference
   const div = useRef();
 
+  // Mouse event info
   const mouseDownPoint = useRef();
   const mouseDownButton = useRef();
   const mouseMoved = useRef(false);
   const mousePoint = useRef();
 
+  // Other references
   const slice = useRef(0);
   const maxLabel = useRef(1);
   const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
 
+  // Compute mask using segment anything (sam)
+  const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
+  const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
+
+  // Compute original image coordinates from image display coordinates
   const displayToImage = useCallback(v => v / displaySize * imageSize, [displaySize, imageSize]);
 
+  // Get point coordinates from event
   const getPoint = useCallback(evt => {
     const x = clamp(evt.nativeEvent ? evt.nativeEvent.offsetX : evt.x, 0, displaySize - 1);
     const y = clamp(evt.nativeEvent ? evt.nativeEvent.offsetY : evt.y, 0, displaySize - 1);
@@ -54,9 +66,6 @@ export const SamWrapper = ({ imageInfo }) => {
     };
   }, [displayToImage, displaySize]);
 
-  const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
-
   // Update display size
   useEffect(() => {
     if (div.current && div.current.clientWidth !== displaySize) {
@@ -64,7 +73,7 @@ export const SamWrapper = ({ imageInfo }) => {
     }
   }, [displaySize]);
 
-  // Compute new mask
+  // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
     const savedMask = savedMasks.current[slice.current];
 
@@ -80,6 +89,8 @@ export const SamWrapper = ({ imageInfo }) => {
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
   }, [embeddingName, mask, imageSize, label]);
 
+  // Event callbacks
+
   const onMouseDown = evt => {
     // Check for only one click at a time
     if (mouseDownPoint.current || mouseDownButton.current) return;
@@ -90,111 +101,110 @@ export const SamWrapper = ({ imageInfo }) => {
   };
 
   // Capture mouse moves for entire screen to handle bounding box
+  const onMouseMove = useCallback(evt => {
+    if (!div.current) return; 
+
+    mousePoint.current = getPoint(getRelativePosition(evt, div.current));
+
+    if (mouseDownButton.current === 0) {
+      // Box
+      setPoints();
+
+      const top = Math.min(mouseDownPoint.current.y, mousePoint.current.y);
+      const left = Math.min(mouseDownPoint.current.x, mousePoint.current.x);
+      const bottom = Math.max(mouseDownPoint.current.y, mousePoint.current.y);
+      const right = Math.max(mouseDownPoint.current.x, mousePoint.current.x);
+
+      setTempPoints([
+        { x: left, y: top, clickType: 2 },
+        { x: right, y: bottom, clickType: 3 }
+      ]);   
+    }
+    else if (!mouseDownButton.current){
+      if (evt.altKey || evt.shiftKey) {
+        // Point
+        setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
+      }
+    }
+
+    mouseMoved.current = true;
+  }, [getPoint]);
+
+  // Capture mouse moves for entire screen to handle bounding box
   useEffect(() => {
-    const onMouseMove = evt => {
-      if (!div.current) return; 
-
-      mousePoint.current = getPoint(getRelativePosition(evt, div.current));
-  
-      if (mouseDownButton.current === 0) {
-        // Box
-        setPoints();
-  
-        const top = Math.min(mouseDownPoint.current.y, mousePoint.current.y);
-        const left = Math.min(mouseDownPoint.current.x, mousePoint.current.x);
-        const bottom = Math.max(mouseDownPoint.current.y, mousePoint.current.y);
-        const right = Math.max(mouseDownPoint.current.x, mousePoint.current.x);
-  
-        setTempPoints([
-          { x: left, y: top, clickType: 2 },
-          { x: right, y: bottom, clickType: 3 }
-        ]);   
-      }
-      else if (!mouseDownButton.current){
-        if (evt.altKey || evt.shiftKey) {
-          // Point
-          setTempPoints([{ ...mousePoint.current, clickType: evt.shiftKey ? 0 : 1 }]);
-        }
-      }
-  
-      mouseMoved.current = true;
-    };
-
     document.addEventListener('mousemove', onMouseMove);
 
     return () => document.removeEventListener('mousemove', onMouseMove);
-  }, [getPoint]);
+  }, [onMouseMove]);
 
-  // Capture mouse up for entire screen to handle bounding box
-  useEffect(() => {
-    const onMouseUp = evt => {
-      if (mouseDownButton.current !== evt.button) return;
+  const onMouseUp = useCallback(evt => {
+    if (mouseDownButton.current !== evt.button) return;
 
-      if (mouseMoved.current) {
-        // Drag
-        if (mouseDownButton.current === 0) {
+    if (mouseMoved.current) {
+      // Drag
+      if (mouseDownButton.current === 0) {
+        // Save points
+        setPoints(tempPoints);
+        setTempPoints();
+      }
+    }
+    else {
+      // Click
+      if (mouseDownButton.current === 0) {    
+        if (evt.altKey || evt.shiftKey) {
           // Save points
-          setPoints(tempPoints);
+          setPoints(combineArrays(points, tempPoints));
+          setTempPoints();
+        }
+        else {
+          // Save mask 
+          savedMasks.current[slice.current] = combineMasks(
+            savedMasks.current[slice.current], 
+            mask ? applyLabel(mask, label) : null, overWrite.current
+          );        
+
+          // Pick for new label
+          const point = getPoint(evt);
+          const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+
+          if (newLabel === 0) {
+            maxLabel.current = maxLabel.current + 1;
+            setLabel(maxLabel.current);
+          }
+          else {
+            setLabel(newLabel);
+          }
+          
+          // Clear points
+          setPoints();
           setTempPoints();
         }
       }
-      else {
-        // Click
-        if (mouseDownButton.current === 0) {    
-          if (evt.altKey || evt.shiftKey) {
-            // Save points
-            setPoints(combineArrays(points, tempPoints));
-            setTempPoints();
-          }
-          else {
-            // Save mask 
-            savedMasks.current[slice.current] = combineMasks(
-              savedMasks.current[slice.current], 
-              mask ? applyLabel(mask, label) : null, overWrite.current
-            );        
+      else if (mouseDownButton.current === 2) {
+        // Delete
+        const point = getPoint(evt);
+        const label = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
 
-            // Pick for new label
-            const point = getPoint(evt);
-            const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+        if (label !== 0) {
+          deleteLabel(savedMasks.current[slice.current], label);
+          const displayMask = combineMasks(savedMasks.current[slice.current]);
 
-            if (newLabel === 0) {
-              maxLabel.current = maxLabel.current + 1;
-              setLabel(maxLabel.current);
-            }
-            else {
-              setLabel(newLabel);
-            }
-            
-            // Clear points
-            setPoints();
-            setTempPoints();
-          }
+          setDisplayMask(displayMask);
+          setMaskImage(maskToImage(displayMask, imageSize, imageSize));
         }
-        else if (mouseDownButton.current === 2) {
-          // Delete
-          const point = getPoint(evt);
-          const label = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+      }
+    }    
 
-          if (label !== 0) {
-            deleteLabel(savedMasks.current[slice.current], label);
-            const displayMask = combineMasks(savedMasks.current[slice.current]);
+    mouseDownPoint.current = null;
+    mouseDownButton.current = null;
+  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints]);
 
-            setDisplayMask(displayMask);
-            setMaskImage(maskToImage(displayMask, imageSize, imageSize));
-          }
-        }
-      }    
-
-      mouseDownPoint.current = null;
-      mouseDownButton.current = null;
-    };
-
+  // Capture mouse up for entire screen to handle bounding box
+  useEffect(() => {
     document.addEventListener('mouseup', onMouseUp);
 
     return () => document.removeEventListener('mouseup', onMouseUp);
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints]);
-
-
+  }, [onMouseUp]);
 
   const onKeyDown = evt => {
     evt.preventDefault();
