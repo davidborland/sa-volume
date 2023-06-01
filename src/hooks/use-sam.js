@@ -2,7 +2,9 @@
 
 import { InferenceSession } from 'onnxruntime-web';
 import { useState, useEffect } from 'react';
-import { handleImageScale, thresholdOnnxMask, modelData } from 'utils';
+import { thresholdOnnxMask } from 'utils/maskUtils';
+import { handleImageScale } from 'utils/scaleHelper';
+import { modelData } from 'utils/onnxModelAPI'
 import npyjs from 'npyjs';
 const ort = require('onnxruntime-web');
 

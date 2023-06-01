@@ -1,4 +1,4 @@
-import { getLabelColor } from 'utils';
+import { getLabelColor } from 'utils/colors';
 
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
@@ -31,37 +31,44 @@ const maskToImageData = (input, width, height) => {
 };
 
 // Use a Canvas element to produce an image from ImageData
-function imageDataToImage(imageData) {
+const imageDataToImage = imageData => {
   const canvas = imageDataToCanvas(imageData);
   const image = new Image();
   image.src = canvas.toDataURL();
   return image;
-}
+};
 
 // Canvas elements can be created from ImageData
-function imageDataToCanvas(imageData) {
+const imageDataToCanvas = imageData => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   canvas.width = imageData.width;
   canvas.height = imageData.height;
   ctx?.putImageData(imageData, 0, 0);
   return canvas;
-}
-
+};
 
 // Convert the onnx model mask output to an HTMLImageElement
-export function maskToImage(input, width, height) {
-  return imageDataToImage(maskToImageData(input, width, height));
-}
+export const maskToImage = (input, width, height) => imageDataToImage(maskToImageData(input, width, height));
 
+// Apply a label to a binary mask array
 export const applyLabel = (mask, label) => mask.map(v => v > 0 ? label : 0);
 
-export const combineMasks = (m1, m2, overWrite = false) => {
-  return m1 && m2 ? m1.map((v1, i) => {
+// Combine two mask image arrays, optionally over-writing
+export const combineMasks = (m1, m2, overWrite = false) =>
+  m1 && m2 ? m1.map((v1, i) => {
     const v2 = m2[i];
     return overWrite ? (v2 ? v2 : v1) : (v1 ? v1 : v2);
   }) :
-  m1 ? m1.map(v => v) :
-  m2 ? m2.map(v => v) :
+  m1 ? [...m1] :
+  m2 ? [...m2] :
   null;
-};
+
+// Get the label at a given point
+export const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x] : 0;
+
+// Delete a label 
+export const deleteLabel = (mask, label) => 
+  mask.forEach((value, i, mask) => { 
+    if (value === label) mask[i] = 0;
+  });
