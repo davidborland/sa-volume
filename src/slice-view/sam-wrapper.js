@@ -10,10 +10,8 @@ const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2
 
 const getRelativePosition = (evt, div) => {
   const rect = div.getBoundingClientRect();
-  const top = rect.top + window.pageYOffset;
-  const left = rect.left + window.pageXOffset;
 
-  return { x: evt.clientX - left, y: evt.clientY - top };
+  return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
 };
 
 const getLabels = masks => [...new Set(masks.filter(mask => mask).flat())].filter(label => label !== 0);
@@ -33,6 +31,7 @@ export const SamWrapper = ({ imageInfo }) => {
   const [maskImage, setMaskImage] = useState();
   const [label, setLabel] =  useState(1);
   const [displaySize, setDisplaySize] = useState(1);
+  const [overWrite, setOverWrite] = useState(false);
 
   // Div reference
   const div = useRef();
@@ -46,7 +45,6 @@ export const SamWrapper = ({ imageInfo }) => {
   // Other references
   const slice = useRef(0);
   const savedMasks = useRef(Array(numImages).fill(null));
-  const overWrite = useRef(false);
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
@@ -85,11 +83,11 @@ export const SamWrapper = ({ imageInfo }) => {
     }
 
     const labelMask = mask ? applyLabel(mask, label) : null;
-    const displayMask = combineMasks(savedMask, labelMask, overWrite.current);
+    const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask);
     setMaskImage(maskToImage(displayMask, imageSize, imageSize));
-  }, [embeddingName, mask, imageSize, label]);
+  }, [embeddingName, mask, imageSize, label, overWrite]);
 
   // Event callbacks
 
@@ -164,7 +162,7 @@ export const SamWrapper = ({ imageInfo }) => {
           // Save mask 
           savedMasks.current[slice.current] = combineMasks(
             savedMasks.current[slice.current], 
-            mask ? applyLabel(mask, label) : null, overWrite.current
+            mask ? applyLabel(mask, label) : null, overWrite
           );        
 
           // Pick for new label
@@ -221,7 +219,7 @@ export const SamWrapper = ({ imageInfo }) => {
       
       case 'Control':
         // Overwrite
-        overWrite.current = true;
+        setOverWrite(true);
         break;
       
       default:
@@ -238,7 +236,7 @@ export const SamWrapper = ({ imageInfo }) => {
         break;
 
       case 'Control':
-        overWrite.current = false;
+        setOverWrite(false);
         break;
 
       case 'Escape':
@@ -281,7 +279,7 @@ export const SamWrapper = ({ imageInfo }) => {
       <div>
         <div>Left-click and drag:</div>
         <ul>
-          <li>Draw bounding box to segment an object.</li>
+          <li>Draw a bounding box to segment an object using the current label.</li>
           <li>Hold Ctrl/Cmd to overwrite previous segmentations.</li>
         </ul>
         <div>Left-click:</div>
@@ -290,7 +288,19 @@ export const SamWrapper = ({ imageInfo }) => {
           <li>Click the background to generate a new label or an object to continue editing that object.</li>           
           <li>Hold Shift (background) or Alt (foreground) instead to add points to modify current segmentation.</li>
         </ul>
-
+        <div>Right-click:</div>
+        <ul>
+          <li>Click on an object to remove all pixels with that label from the current slice.</li>
+        </ul>
+        <div>Mouse wheel:</div>
+        <ul>
+          <li>Change slice</li>
+          <li>Also confirms current segmentation and keeps current label.</li>
+        </ul>
+        <div>Esc:</div>
+        <ul>
+          <li>Cancel current segmentation</li>
+        </ul>
       </div>
       <div 
         ref={ div }
