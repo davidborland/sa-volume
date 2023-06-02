@@ -138,7 +138,9 @@ export const SamWrapper = ({ imageInfo }) => {
   }, [onMouseMove]);
 
   const onMouseUp = useCallback(evt => {
-    if (mouseDownButton.current !== evt.button) return;
+    if (!div.current || mouseDownButton.current !== evt.button) return; 
+
+    mousePoint.current = getPoint(getRelativePosition(evt, div.current));
 
     if (mouseMoved.current) {
       // Drag
@@ -163,11 +165,8 @@ export const SamWrapper = ({ imageInfo }) => {
             mask ? applyLabel(mask, label) : null, overWrite.current
           );        
 
-          // XXX: Need to get point like in mouse move
-
           // Pick for new label
-          const point = getPoint(evt);
-          const newLabel = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+          const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
 
           if (newLabel === 0) {
             maxLabel.current = maxLabel.current + 1;
