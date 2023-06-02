@@ -1,5 +1,6 @@
-import { NiftiWrapper } from 'slice-view';
-import { SamWrapper } from 'slice-view';
+import { Container, Row, Col } from 'react-bootstrap';
+import { NiftiWrapper, SamWrapper } from 'components/slice-view';
+import { ControlDocumentation } from 'components/control-documentation';
 
 //const niftiUrl = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image.nii`;
 
@@ -41,8 +42,17 @@ export const App = () => {
   const wrapper = <SamWrapper imageInfo={ addNames(imageInfo2) } />
 
   return (
-    <div style={{ width: 800 }}>
-      { wrapper }
-    </div>
+    <Container fluid className='mt-2'>
+      <Row>
+        <Col>
+          <div>
+            { wrapper }
+          </div>
+        </Col>
+        <Col md={ 4 }>
+          <ControlDocumentation />
+        </Col>
+      </Row>
+    </Container>
   );
 };

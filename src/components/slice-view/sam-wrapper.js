@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { SamDisplay } from './sam-display';
-import { useSam } from 'hooks';
+import { useSam, useResize } from 'hooks';
 import { applyLabel, combineMasks, maskToImage, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
 
@@ -30,11 +30,12 @@ export const SamWrapper = ({ imageInfo }) => {
   const [displayMask, setDisplayMask] = useState();
   const [maskImage, setMaskImage] = useState();
   const [label, setLabel] =  useState(1);
-  const [displaySize, setDisplaySize] = useState(1);
+  //const [displaySize, setDisplaySize] = useState(1);
   const [overWrite, setOverWrite] = useState(false);
 
   // Div reference
   const div = useRef();
+  const { width: displaySize } = useResize(div);
 
   // Mouse event info
   const mouseDownPoint = useRef();
@@ -66,12 +67,14 @@ export const SamWrapper = ({ imageInfo }) => {
     };
   }, [displayToImage, displaySize]);
 
+  /*
   // Update display size
   useEffect(() => {
     if (div.current && div.current.clientWidth !== displaySize) {
       setDisplaySize(div.current.clientWidth);
     }
   }, [displaySize]);
+  */
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
@@ -196,7 +199,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
     mouseDownPoint.current = null;
     mouseDownButton.current = null;
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints]);
+  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite]);
 
   // Capture mouse up for entire screen to handle bounding box
   useEffect(() => {
@@ -276,32 +279,6 @@ export const SamWrapper = ({ imageInfo }) => {
 
   return (
     <>
-      <div>
-        <div>Left-click and drag:</div>
-        <ul>
-          <li>Draw a bounding box to segment an object using the current label.</li>
-          <li>Hold Ctrl/Cmd to overwrite previous segmentations.</li>
-        </ul>
-        <div>Left-click:</div>
-        <ul>
-          <li>Confirm current segmentation.</li>
-          <li>Click the background to generate a new label or an object to continue editing that object.</li>           
-          <li>Hold Shift (background) or Alt (foreground) instead to add points to modify current segmentation.</li>
-        </ul>
-        <div>Right-click:</div>
-        <ul>
-          <li>Click on an object to remove all pixels with that label from the current slice.</li>
-        </ul>
-        <div>Mouse wheel:</div>
-        <ul>
-          <li>Change slice</li>
-          <li>Also confirms current segmentation and keeps current label.</li>
-        </ul>
-        <div>Esc:</div>
-        <ul>
-          <li>Cancel current segmentation</li>
-        </ul>
-      </div>
       <div 
         ref={ div }
         style={{ 
@@ -309,7 +286,8 @@ export const SamWrapper = ({ imageInfo }) => {
           userSelect: 'none',
           outline: 'none',
           padding: 0,
-          margin: 0          
+          margin: 0,
+          border: '1px solid #424549'
         }} 
         onMouseDown={ onMouseDown }  
         onKeyDown={ onKeyDown }
@@ -327,7 +305,7 @@ export const SamWrapper = ({ imageInfo }) => {
         />
       </div>      
       <div>
-        <label>Slice: { slice.current }</label>
+        <label>Slice: { slice.current + 1}</label>
       </div>
       <div 
         style={{ 
