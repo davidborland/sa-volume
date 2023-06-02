@@ -22,12 +22,12 @@ export const ControlDocumentation = () => {
 
           Right-click:
           <ul>
-            <li>Click on an object to remove all pixels with that label from the current slice.</li>
+            <li>Click on an object to remove it from the current slice.</li>
           </ul>
           <div>Mouse wheel:</div>
           <ul>
-            <li>Change slice</li>
-            <li>Also confirms current segmentation and keeps current label.</li>
+            <li>Change slice.</li>
+            <li>Also confirms current segmentation and keeps current label for new slice.</li>
           </ul>
           
           Esc:

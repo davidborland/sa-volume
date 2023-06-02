@@ -1,12 +1,9 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { SamDisplay } from './sam-display';
 import { useSam, useResize } from 'hooks';
-import { applyLabel, combineMasks, maskToImage, getLabel, deleteLabel } from 'utils/maskUtils';
+import { clamp, combineArrays } from 'utils/array';
+import { applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, borderPixels } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
-
-// Utility functions
-const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
-const combineArrays = (a1, a2) => a1?.length && a2?.length ? [...a1, ...a2] : a2?.length ? a2 : a1;
 
 const getRelativePosition = (evt, div) => {
   const rect = div.getBoundingClientRect();
@@ -30,7 +27,6 @@ export const SamWrapper = ({ imageInfo }) => {
   const [displayMask, setDisplayMask] = useState();
   const [maskImage, setMaskImage] = useState();
   const [label, setLabel] =  useState(1);
-  //const [displaySize, setDisplaySize] = useState(1);
   const [overWrite, setOverWrite] = useState(false);
 
   // Div reference
@@ -67,15 +63,6 @@ export const SamWrapper = ({ imageInfo }) => {
     };
   }, [displayToImage, displaySize]);
 
-  /*
-  // Update display size
-  useEffect(() => {
-    if (div.current && div.current.clientWidth !== displaySize) {
-      setDisplaySize(div.current.clientWidth);
-    }
-  }, [displaySize]);
-  */
-
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
     const savedMask = savedMasks.current[slice.current];
@@ -89,7 +76,7 @@ export const SamWrapper = ({ imageInfo }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask);
-    setMaskImage(maskToImage(displayMask, imageSize, imageSize));
+    setMaskImage(maskToImage(borderPixels(displayMask, imageSize), imageSize, imageSize));
   }, [embeddingName, mask, imageSize, label, overWrite]);
 
   // Event callbacks

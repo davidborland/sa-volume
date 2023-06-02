@@ -1,3 +1,4 @@
+import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 
 // Threshold the mask prediction values
@@ -72,3 +73,41 @@ export const deleteLabel = (mask, label) =>
   mask.forEach((value, i, mask) => { 
     if (value === label) mask[i] = 0;
   });
+
+// Extract border pixels
+export const borderPixels = (mask, imageSize) => {
+  const border = [...mask];
+
+  const offsets = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1]
+  ];
+
+  for (let i = 0; i < imageSize; i++) {
+    for (let j = 0; j < imageSize; j++) {      
+      const index = i * imageSize + j;
+      const label = mask[index];
+
+      if (mask[index] === 0) continue;
+
+      let isBorder = false;
+
+      for (let k = 0; k < offsets.length; k++) {
+        const offset = offsets[k];
+        const x = clamp(j + offset[1], 0, imageSize - 1);
+        const y = clamp(i + offset[0], 0, imageSize - 1);
+
+        if (mask[y * imageSize + x] !== label) {
+          isBorder = true;
+          break;
+        }
+      }
+
+      if (!isBorder) border[index] = 0;
+    }
+  }
+
+  return border;
+}
