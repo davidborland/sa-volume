@@ -16,6 +16,9 @@ const getRelativePosition = (evt, div) => {
   return { x: evt.clientX - left, y: evt.clientY - top };
 };
 
+const getLabels = masks => [...new Set(masks.filter(mask => mask).flat())].filter(label => label !== 0);
+const getNewLabel = masks => Math.max(...getLabels(masks)) + 1;
+
 export const SamWrapper = ({ imageInfo }) => {
   // Get image information
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
@@ -42,7 +45,6 @@ export const SamWrapper = ({ imageInfo }) => {
 
   // Other references
   const slice = useRef(0);
-  const maxLabel = useRef(1);
   const savedMasks = useRef(Array(numImages).fill(null));
   const overWrite = useRef(false);
 
@@ -169,8 +171,7 @@ export const SamWrapper = ({ imageInfo }) => {
           const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
 
           if (newLabel === 0) {
-            maxLabel.current = maxLabel.current + 1;
-            setLabel(maxLabel.current);
+            setLabel(getNewLabel(savedMasks.current));
           }
           else {
             setLabel(newLabel);
@@ -183,8 +184,7 @@ export const SamWrapper = ({ imageInfo }) => {
       }
       else if (mouseDownButton.current === 2) {
         // Delete
-        const point = getPoint(evt);
-        const label = getLabel(displayMask, Math.round(point.x), Math.round(point.y), imageSize);
+        const label = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
 
         if (label !== 0) {
           deleteLabel(savedMasks.current[slice.current], label);
