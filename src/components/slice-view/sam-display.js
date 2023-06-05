@@ -21,7 +21,8 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize })
           style={{ 
             width: '100%', 
             aspectRatio: '1 / 1', 
-            pointerEvents: 'none' 
+            pointerEvents: 'none',
+            //imageRendering: 'pixelated'
           }} 
           src={ image.src } 
           alt='original' 
@@ -36,7 +37,8 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize })
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: 0.5
+            opacity: 0.5,
+            //imageRendering: 'pixelated'
           }} 
           src={ maskImage.src } 
           alt='mask' 

@@ -52,6 +52,25 @@ const imageDataToCanvas = imageData => {
 // Convert the onnx model mask output to an HTMLImageElement
 export const maskToImage = (input, width, height) => imageDataToImage(maskToImageData(input, width, height));
 
+// Scale image data
+export const scaleImageData = (imageData, width, height, scale) => {
+  const newWidth = width * scale;
+  const newHeight = height * scale;
+
+  const scaledImageData = [];
+
+  for (let y = 0; y < newHeight; y++) {
+    for (let x = 0; x < newWidth; x++) {
+      const sourceIndex = Math.floor(y / scale) * width + Math.floor(x / scale);
+      const targetIndex = y * newWidth + x;
+
+      scaledImageData[targetIndex] = imageData[sourceIndex];
+    }
+  }
+
+  return scaledImageData;
+};
+
 // Apply a label to a binary mask array
 export const applyLabel = (mask, label) => mask.map(v => v > 0 ? label : 0);
 

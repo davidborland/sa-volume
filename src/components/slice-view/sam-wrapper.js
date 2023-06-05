@@ -2,7 +2,9 @@ import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { SamDisplay } from './sam-display';
 import { useSam, useResize } from 'hooks';
 import { clamp, combineArrays } from 'utils/array';
-import { applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, borderPixels } from 'utils/maskUtils';
+import { 
+  applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
+} from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
 
 const getRelativePosition = (evt, div) => {
@@ -76,7 +78,7 @@ export const SamWrapper = ({ imageInfo }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask);
-    setMaskImage(maskToImage(borderPixels(displayMask, imageSize), imageSize, imageSize));
+    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, 4), imageSize * 4), imageSize * 4, imageSize * 4));
   }, [embeddingName, mask, imageSize, label, overWrite]);
 
   // Event callbacks
