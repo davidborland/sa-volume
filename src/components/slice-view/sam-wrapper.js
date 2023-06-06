@@ -78,7 +78,9 @@ export const SamWrapper = ({ imageInfo }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask);
-    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, 4), imageSize * 4), imageSize * 4, imageSize * 4));
+
+    const borderScale = 4;
+    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale));
   }, [embeddingName, mask, imageSize, label, overWrite]);
 
   // Event callbacks

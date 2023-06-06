@@ -98,10 +98,14 @@ export const borderPixels = (mask, imageSize) => {
   const border = [...mask];
 
   const offsets = [
+    [-1, -1],
     [-1, 0],
+    [-1, 1],
+    [0, 1],
+    [1, 1],
     [1, 0],
-    [0, -1],
-    [0, 1]
+    [1, -1],
+    [0, -1]
   ];
 
   for (let i = 0; i < imageSize; i++) {
