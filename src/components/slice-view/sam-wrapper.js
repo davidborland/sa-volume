@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { SamDisplay } from './sam-display';
 import { useSam, useResize } from 'hooks';
+import { SamDisplay, SliceMarker } from 'components/slice-view';
 import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
@@ -313,7 +313,10 @@ export const SamWrapper = ({ imageInfo }) => {
         />
       </div>      
       <div>
-        <label>Slice: { slice.current + 1}</label>
+        <SliceMarker 
+          numImages={ numImages } 
+          slice={ slice.current } 
+        />
       </div>
       <div 
         style={{ 
