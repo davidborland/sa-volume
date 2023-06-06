@@ -67,8 +67,8 @@ export const SamWrapper = ({ imageInfo }) => {
 
   const updateMaskImage = useCallback(displayMask => {
     const borderScale = 4;
-    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale));
-  }, [imageSize]);
+    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale, label));
+  }, [imageSize, label]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {

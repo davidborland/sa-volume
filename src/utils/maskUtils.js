@@ -12,7 +12,7 @@ export const thresholdOnnxMask = (input, threshold) => {
 }
 
 // Convert the onnx model mask to ImageData
-const maskToImageData = (input, width, height) => {
+const maskToImageData = (input, width, height, currentLabel) => {
   const arr = new Uint8ClampedArray(4 * width * height).fill(0);
 
   for (let i = 0; i < input.length; i++) {
@@ -24,7 +24,7 @@ const maskToImageData = (input, width, height) => {
       arr[4 * i + 0] = r;
       arr[4 * i + 1] = g;
       arr[4 * i + 2] = b;
-      arr[4 * i + 3] = 255;
+      arr[4 * i + 3] = label === currentLabel ? 255 : 127;
     }
   }
 
@@ -50,7 +50,7 @@ const imageDataToCanvas = imageData => {
 };
 
 // Convert the onnx model mask output to an HTMLImageElement
-export const maskToImage = (input, width, height) => imageDataToImage(maskToImageData(input, width, height));
+export const maskToImage = (input, width, height, currentLabel) => imageDataToImage(maskToImageData(input, width, height, currentLabel));
 
 // Scale image data
 export const scaleImageData = (imageData, width, height, scale) => {
