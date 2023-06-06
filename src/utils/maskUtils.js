@@ -94,9 +94,11 @@ export const deleteLabel = (mask, label) =>
   });
 
 // Extract border pixels
+
 export const borderPixels = (mask, imageSize) => {
   const border = [...mask];
 
+  // Basically computing a convolution here. Can probably make this faster.
   const offsets = [
     [-1, -1],
     [-1, 0],

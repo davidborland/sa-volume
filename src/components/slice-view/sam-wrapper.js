@@ -296,6 +296,7 @@ export const SamWrapper = ({ imageInfo }) => {
           points={ combinedPoints }
           imageSize={ imageSize }
           displaySize={ displaySize }
+          labelColor={ getLabelColorHex(label) }
         />
       </div>      
       <div>

@@ -8,7 +8,7 @@ const pairs = a => a.reduce((pairs, item, i) => {
   return pairs;
 }, []);
 
-export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize }) => {
+export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, labelColor }) => {
   const imageToDisplay = v => v / imageSize * displaySize;
 
   const boxes = points ? pairs(points.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
@@ -37,7 +37,7 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize })
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: 1,
+            opacity: 0.8,
             //imageRendering: 'pixelated'
           }} 
           src={ maskImage.src } 
@@ -55,7 +55,8 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize })
             width: imageToDisplay((box[1].x - box[0].x)),
             pointerEvents: 'none',
             border: '2px dashed #993404',
-            opacity: 0.75
+            borderColor: labelColor,
+            opacity: 0.5
           }}
         />
       ))}        
@@ -68,7 +69,7 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize })
             top: imageToDisplay(y) - (clickType === 0 ? 26 : 25),
             left: imageToDisplay(x) - (clickType === 0 ? 6 : 11),
             pointerEvents: 'none',
-            color: '#993404',
+            color: labelColor,
             fontWeight: 'bold',
             fontSize: 32,
             opacity: 0.75
