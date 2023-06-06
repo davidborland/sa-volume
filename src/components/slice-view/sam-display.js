@@ -37,8 +37,7 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, l
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: 0.8,
-            //imageRendering: 'pixelated'
+            opacity: 1
           }} 
           src={ maskImage.src } 
           alt='mask' 

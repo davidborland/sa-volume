@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { useSam, useResize } from 'hooks';
-import { SamDisplay, SliceMarker } from 'components/slice-view';
+import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
 import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
@@ -285,7 +285,23 @@ export const SamWrapper = ({ imageInfo }) => {
   };
 
   return (
-    <>
+    <>      
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-evenly'
+        }}
+      >
+        <div>
+          <SliceMarker 
+            numImages={ numImages } 
+            slice={ slice.current } 
+          />
+        </div>
+        <div>
+          <LabelDisplay label={ label } />
+        </div>
+      </div>
       <div 
         ref={ div }
         style={{ 
@@ -312,29 +328,7 @@ export const SamWrapper = ({ imageInfo }) => {
           labelColor={ getLabelColorHex(label) }
         />
       </div>      
-      <div>
-        <SliceMarker 
-          numImages={ numImages } 
-          slice={ slice.current } 
-        />
-      </div>
-      <div 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'baseline' 
-        }}
-      >
-        <label>Label: { label }</label>
-        <div 
-          style={{ 
-            background: getLabelColorHex(label), 
-            width: 20, 
-            height: '1em',
-            borderRadius: 5,
-            marginLeft: 5
-          }} 
-        />
-      </div>
+
       <div>
         <label>Threshold</label>
         <input 
