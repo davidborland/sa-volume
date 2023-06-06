@@ -14,7 +14,10 @@ const getRelativePosition = (evt, div) => {
 };
 
 const getLabels = masks => [...new Set(masks.filter(mask => mask).flat())].filter(label => label !== 0);
-const getNewLabel = masks => Math.max(...getLabels(masks)) + 1;
+const getNewLabel = masks => {
+  const labels = getLabels(masks);
+  return labels?.length ? Math.max(...labels) + 1 : 1;
+};
 
 export const SamWrapper = ({ imageInfo }) => {
   // Get image information
@@ -66,6 +69,12 @@ export const SamWrapper = ({ imageInfo }) => {
   }, [displayToImage, displaySize]);
 
   const updateMaskImage = useCallback(displayMask => {
+    if (!displayMask) {
+      setMaskImage(null);
+
+      return;
+    }
+
     const borderScale = 4;
     setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale, label));
   }, [imageSize, label]);
@@ -187,6 +196,10 @@ export const SamWrapper = ({ imageInfo }) => {
 
           setDisplayMask(displayMask);
           updateMaskImage(displayMask);
+
+          // Clear points
+          setPoints();
+          setTempPoints();
         }
       }
     }    

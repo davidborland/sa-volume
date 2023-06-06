@@ -89,7 +89,7 @@ export const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x
 
 // Delete a label 
 export const deleteLabel = (mask, label) => 
-  mask.forEach((value, i, mask) => { 
+  mask?.forEach((value, i, mask) => { 
     if (value === label) mask[i] = 0;
   });
 
