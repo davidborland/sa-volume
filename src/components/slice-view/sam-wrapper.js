@@ -65,6 +65,11 @@ export const SamWrapper = ({ imageInfo }) => {
     };
   }, [displayToImage, displaySize]);
 
+  const updateMaskImage = useCallback(displayMask => {
+    const borderScale = 4;
+    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale));
+  }, [imageSize]);
+
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
     const savedMask = savedMasks.current[slice.current];
@@ -78,10 +83,8 @@ export const SamWrapper = ({ imageInfo }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask);
-
-    const borderScale = 4;
-    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale));
-  }, [embeddingName, mask, imageSize, label, overWrite]);
+    updateMaskImage(displayMask);    
+  }, [embeddingName, mask, imageSize, label, overWrite, updateMaskImage]);
 
   // Event callbacks
 
@@ -183,14 +186,14 @@ export const SamWrapper = ({ imageInfo }) => {
           const displayMask = combineMasks(savedMasks.current[slice.current]);
 
           setDisplayMask(displayMask);
-          setMaskImage(maskToImage(displayMask, imageSize, imageSize));
+          updateMaskImage(displayMask);
         }
       }
     }    
 
     mouseDownPoint.current = null;
     mouseDownButton.current = null;
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite]);
+  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite, updateMaskImage]);
 
   // Capture mouse up for entire screen to handle bounding box
   useEffect(() => {
