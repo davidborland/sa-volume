@@ -26,7 +26,7 @@ export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
   // Context
-  const [{ threshold }] = useContext(OptionsContext);
+  const [{ showBorder, threshold }] = useContext(OptionsContext);
 
   // State
   const [points, setPoints] = useState([]);
@@ -79,9 +79,13 @@ export const SamWrapper = ({ imageInfo }) => {
       return;
     }
 
-    const borderScale = 4;
-    setMaskImage(maskToImage(borderPixels(scaleImageData(displayMask, imageSize, imageSize, borderScale), imageSize * borderScale), imageSize * borderScale, imageSize * borderScale, label));
-  }, [imageSize, label]);
+    const imageScale = showBorder ? 4 : 1;
+    const maskPixels = showBorder ? 
+      borderPixels(scaleImageData(displayMask, imageSize, imageSize, imageScale), imageSize * imageScale) :
+      [...displayMask];
+
+    setMaskImage(maskToImage(maskPixels, imageSize * imageScale, imageSize * imageScale, label));
+  }, [imageSize, label, showBorder]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {

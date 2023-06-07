@@ -1,10 +1,12 @@
 import { createContext, useReducer } from 'react';
 
 export const OPTIONS_SET_INTERPOLATE = 'options/SET_INTERPOLATE';
+export const OPTIONS_SET_SHOW_BORDER = 'options/SET_SHOW_BORDER';
 export const OPTIONS_SET_THRESHOLD = 'options/SET_THRESHOLD';
 
 const initialState = {
   interpolate: true,
+  showBorder: true,
   threshold: 0.5
 };
 
@@ -14,6 +16,12 @@ const reducer = (state, action) => {
       return {
         ...state,
         interpolate: action.interpolate
+      };
+
+    case OPTIONS_SET_SHOW_BORDER:
+      return {
+        ...state,
+        showBorder: action.showBorder
       };
 
     case OPTIONS_SET_THRESHOLD:

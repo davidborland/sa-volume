@@ -30,7 +30,7 @@ export const Checkbox = ({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 5
+          gap: 10
         }}
       >
         { label &&
