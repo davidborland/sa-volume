@@ -2,6 +2,7 @@ import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'r
 import { OptionsContext, OPTIONS_SET_THRESHOLD } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
+import { Options } from 'components/options';
 import { Slider } from 'components/slider';
 import { clamp, combineArrays } from 'utils/array';
 import { 
@@ -54,7 +55,6 @@ export const SamWrapper = ({ imageInfo }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  console.log(threshold)
   const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
 
   // Compute original image coordinates from image display coordinates
@@ -263,10 +263,6 @@ export const SamWrapper = ({ imageInfo }) => {
     }
   };
 
-  const onThresholdChange = value => {
-    optionsDispatch({ type: OPTIONS_SET_THRESHOLD, threshold: value });
-  };
-
   const onWheel = evt => {
     const y = evt.deltaY;
     const newSlice = y < 0 ? Math.max(0, slice.current - 1) : 
@@ -294,7 +290,8 @@ export const SamWrapper = ({ imageInfo }) => {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-evenly'
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}
       >
         <div>
@@ -305,6 +302,9 @@ export const SamWrapper = ({ imageInfo }) => {
         </div>
         <div>
           <LabelDisplay label={ label } />
+        </div>
+        <div>
+          <Options />
         </div>
       </div>
       <div 
@@ -332,16 +332,7 @@ export const SamWrapper = ({ imageInfo }) => {
           displaySize={ displaySize }
           labelColor={ getLabelColorHex(label) }
         />
-      </div>      
-      <Slider 
-        label='Threshold:'
-        value={ threshold }
-        min={ 0 }
-        max={ 100 }
-        outputMin={ -0 }
-        outputMax={ 1 }        
-        onMouseUp={ onThresholdChange }
-      />
+      </div>   
     </>
   );
 };
