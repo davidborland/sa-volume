@@ -1,3 +1,6 @@
+import { useContext } from 'react';
+import { OptionsContext } from 'contexts';
+
 const pairs = a => a.reduce((pairs, item, i) => {
   if (i % 2 === 0) {
     pairs.push([item]);
@@ -9,6 +12,8 @@ const pairs = a => a.reduce((pairs, item, i) => {
 }, []);
 
 export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, labelColor }) => {
+  const [{ interpolate }] = useContext(OptionsContext);
+
   const imageToDisplay = v => v / imageSize * displaySize;
 
   const boxes = points ? pairs(points.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
@@ -22,7 +27,7 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, l
             width: '100%', 
             aspectRatio: '1 / 1', 
             pointerEvents: 'none',
-            //imageRendering: 'pixelated'
+            imageRendering: interpolate ? null : 'pixelated'
           }} 
           src={ image.src } 
           alt='original' 

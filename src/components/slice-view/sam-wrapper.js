@@ -1,9 +1,8 @@
 import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { OptionsContext, OPTIONS_SET_THRESHOLD } from 'contexts';
+import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
 import { Options } from 'components/options';
-import { Slider } from 'components/slider';
 import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
@@ -27,7 +26,7 @@ export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
   // Context
-  const [{ threshold }, optionsDispatch] = useContext(OptionsContext);
+  const [{ threshold }] = useContext(OptionsContext);
 
   // State
   const [points, setPoints] = useState([]);

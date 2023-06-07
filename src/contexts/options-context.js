@@ -1,13 +1,21 @@
 import { createContext, useReducer } from 'react';
 
+export const OPTIONS_SET_INTERPOLATE = 'options/SET_INTERPOLATE';
 export const OPTIONS_SET_THRESHOLD = 'options/SET_THRESHOLD';
 
 const initialState = {
+  interpolate: true,
   threshold: 0.5
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
+    case OPTIONS_SET_INTERPOLATE:
+      return {
+        ...state,
+        interpolate: action.interpolate
+      };
+
     case OPTIONS_SET_THRESHOLD:
       return {
         ...state,
