@@ -3,7 +3,7 @@ import { createContext, useReducer } from 'react';
 export const OPTIONS_SET_THRESHOLD = 'options/SET_THRESHOLD';
 
 const initialState = {
-  threshold: 0
+  threshold: 0.5
 };
 
 const reducer = (state, action) => {

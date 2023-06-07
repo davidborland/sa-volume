@@ -14,12 +14,10 @@ export const SliceMarker = ({ numImages, slice }) => {
               fontWeight: 'bold', 
               opacity: i === slice ? 1 : 0.5 
             }}
-            >
-              |
-            </span>
+          >|</span>
         ))}
       </div>
-      <label> { slice + 1}</label>      
+      <label>{ slice + 1 }</label>      
     </div>
   );
 };

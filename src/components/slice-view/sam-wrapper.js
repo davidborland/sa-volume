@@ -1,6 +1,8 @@
-import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { OptionsContext, OPTIONS_SET_THRESHOLD } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
+import { Slider } from 'components/slider';
 import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
@@ -23,10 +25,12 @@ export const SamWrapper = ({ imageInfo }) => {
   // Get image information
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
+  // Context
+  const [{ threshold }, optionsDispatch] = useContext(OptionsContext);
+
   // State
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
-  const [threshold, setThreshold] = useState(0.5);
   const [imageName, setImageName] = useState(imageNames[0]);
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [displayMask, setDisplayMask] = useState();
@@ -50,6 +54,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
+  console.log(threshold)
   const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
 
   // Compute original image coordinates from image display coordinates
@@ -258,8 +263,8 @@ export const SamWrapper = ({ imageInfo }) => {
     }
   };
 
-  const onThresholdChange = evt => {
-    setThreshold(+evt.target.value / 100);
+  const onThresholdChange = value => {
+    optionsDispatch({ type: OPTIONS_SET_THRESHOLD, threshold: value });
   };
 
   const onWheel = evt => {
@@ -328,17 +333,15 @@ export const SamWrapper = ({ imageInfo }) => {
           labelColor={ getLabelColorHex(label) }
         />
       </div>      
-
-      <div>
-        <label>Threshold</label>
-        <input 
-          type='range' 
-          min={ 0 } 
-          max={ 100 } 
-          defaultValue={ 50 } 
-          onMouseUp={ onThresholdChange } 
-        />
-      </div>
+      <Slider 
+        label='Threshold:'
+        value={ threshold }
+        min={ 0 }
+        max={ 100 }
+        outputMin={ -0 }
+        outputMax={ 1 }        
+        onMouseUp={ onThresholdChange }
+      />
     </>
   );
 };

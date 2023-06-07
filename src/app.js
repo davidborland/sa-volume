@@ -1,4 +1,5 @@
 import { Container, Row, Col } from 'react-bootstrap';
+import { OptionsProvider } from 'contexts';
 import { NiftiWrapper, SamWrapper } from 'components/slice-view';
 import { ControlDocumentation } from 'components/control-documentation';
 
@@ -42,17 +43,19 @@ export const App = () => {
   const wrapper = <SamWrapper imageInfo={ addNames(imageInfo2) } />
 
   return (
-    <Container fluid className='mt-2'>
-      <Row>
-        <Col>
-          <div>
-            { wrapper }
-          </div>
-        </Col>
-        <Col md={ 4 }>
-          <ControlDocumentation />
-        </Col>
-      </Row>
-    </Container>
+    <OptionsProvider>
+      <Container fluid className='mt-2'>
+        <Row>
+          <Col>
+            <div>
+              { wrapper }
+            </div>
+          </Col>
+          <Col md={ 4 }>
+            <ControlDocumentation />
+          </Col>
+        </Row>
+      </Container>
+    </OptionsProvider>
   );
 };
