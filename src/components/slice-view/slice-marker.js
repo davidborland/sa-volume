@@ -6,14 +6,14 @@ export const SliceMarker = ({ numImages, slice }) => {
         gap: 5
       }}
     >
-      <label>Slice:</label>
+      <label>Slice</label>
       <div style={{ marginTop: -5 }}>
         { Array(numImages).fill().map((_, i) => (
           <span 
             key={ i }
             style={{ 
               fontWeight: 'bold', 
-              opacity: i === slice ? 1 : 0.5 
+              opacity: i === slice ? 1 : 0.25 
             }}
           >|</span>
         ))}

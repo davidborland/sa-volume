@@ -9,7 +9,7 @@ export const LabelDisplay = ({ label }) => {
         gap: 5
       }}
     >
-      <label>Label:</label>
+      <label>Label</label>
       <div 
         style={{ 
           background: getLabelColorHex(label), 
