@@ -2,11 +2,13 @@ import { createContext, useReducer } from 'react';
 
 export const OPTIONS_SET_INTERPOLATE = 'options/SET_INTERPOLATE';
 export const OPTIONS_SET_SHOW_BORDER = 'options/SET_SHOW_BORDER';
+export const OPTIONS_SET_MASK_OPACITY = 'options/SET_MASK_OPACITY';
 export const OPTIONS_SET_THRESHOLD = 'options/SET_THRESHOLD';
 
 const initialState = {
   interpolate: true,
   showBorder: true,
+  maskOpacity: 0.8,
   threshold: 0.5
 };
 
@@ -22,6 +24,12 @@ const reducer = (state, action) => {
       return {
         ...state,
         showBorder: action.showBorder
+      };
+
+    case OPTIONS_SET_MASK_OPACITY:
+      return {
+        ...state,
+        maskOpacity: action.maskOpacity
       };
 
     case OPTIONS_SET_THRESHOLD:

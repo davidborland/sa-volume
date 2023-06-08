@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { Form } from 'react-bootstrap';
 
 const rescale = (value, min, max, outMin, outMax) => (value - min) / (max - min) * (outMax - outMin) + outMin;
 
@@ -55,7 +54,7 @@ export const Slider = ({
             { label }
           </label>
         }
-        <Form.Range 
+        <input 
           type='range' 
           min={ min } 
           max={ max } 

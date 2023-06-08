@@ -12,7 +12,7 @@ const pairs = a => a.reduce((pairs, item, i) => {
 }, []);
 
 export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, labelColor }) => {
-  const [{ interpolate }] = useContext(OptionsContext);
+  const [{ interpolate, maskOpacity }] = useContext(OptionsContext);
 
   const imageToDisplay = v => v / imageSize * displaySize;
 
@@ -42,7 +42,7 @@ export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, l
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: 1
+            opacity: maskOpacity
           }} 
           src={ maskImage.src } 
           alt='mask' 
