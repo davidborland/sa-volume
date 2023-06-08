@@ -74,7 +74,7 @@ export const SamWrapper = ({ imageInfo }) => {
     const savedMask = savedMasks.current[slice.current];
 
     if (!savedMask && !mask) {
-      setMaskImage(null);
+      setDisplayMask(null);
       return;
     }
 
