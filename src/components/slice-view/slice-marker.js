@@ -10,6 +10,7 @@ export const SliceMarker = ({ numImages, slice }) => {
       <div style={{ marginTop: -5 }}>
         { Array(numImages).fill().map((_, i) => (
           <span 
+            key={ i }
             style={{ 
               fontWeight: 'bold', 
               opacity: i === slice ? 1 : 0.5 

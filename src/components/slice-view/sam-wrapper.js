@@ -2,6 +2,7 @@ import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'r
 import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
+import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
 import { clamp, combineArrays } from 'utils/array';
 import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
@@ -287,6 +288,7 @@ export const SamWrapper = ({ imageInfo }) => {
           <LabelDisplay label={ label } />
         </div>
         <div>
+          <SaveButton />
           <Options />
         </div>
       </div>
