@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { OptionsContext } from 'contexts';
+import { maskToImage, scaleImageData, borderPixels } from 'utils/maskUtils';
 
 const pairs = a => a.reduce((pairs, item, i) => {
   if (i % 2 === 0) {
@@ -11,10 +12,21 @@ const pairs = a => a.reduce((pairs, item, i) => {
   return pairs;
 }, []);
 
-export const SamDisplay = ({ image, maskImage, points, imageSize, displaySize, labelColor }) => {
-  const [{ interpolate, maskOpacity }] = useContext(OptionsContext);
+export const SamDisplay = ({ image, mask, label, points, imageSize, displaySize, labelColor }) => {
+  const [{ interpolate, showBorder, maskOpacity }] = useContext(OptionsContext);
 
   const imageToDisplay = v => v / imageSize * displaySize;
+
+  let maskImage = null;
+   
+  if (mask) {
+    const imageScale = showBorder ? 4 : 1;
+    const maskPixels = showBorder ? 
+      borderPixels(scaleImageData(mask, imageSize, imageSize, imageScale), imageSize * imageScale) :
+      mask;
+
+    maskImage = maskToImage(maskPixels, imageSize * imageScale, imageSize * imageScale, label);
+  }
 
   const boxes = points ? pairs(points.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
   const justPoints = points ? points.filter(({ clickType }) => clickType === 0 || clickType === 1) : [];

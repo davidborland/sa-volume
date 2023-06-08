@@ -4,9 +4,7 @@ import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
 import { Options } from 'components/options';
 import { clamp, combineArrays } from 'utils/array';
-import { 
-  applyLabel, combineMasks, maskToImage, getLabel, deleteLabel, scaleImageData, borderPixels 
-} from 'utils/maskUtils';
+import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
 
 const getRelativePosition = (evt, div) => {
@@ -26,7 +24,7 @@ export const SamWrapper = ({ imageInfo }) => {
   const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
 
   // Context
-  const [{ showBorder, threshold }] = useContext(OptionsContext);
+  const [{ threshold }] = useContext(OptionsContext);
 
   // State
   const [points, setPoints] = useState([]);
@@ -34,7 +32,6 @@ export const SamWrapper = ({ imageInfo }) => {
   const [imageName, setImageName] = useState(imageNames[0]);
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [displayMask, setDisplayMask] = useState();
-  const [maskImage, setMaskImage] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
 
@@ -72,21 +69,6 @@ export const SamWrapper = ({ imageInfo }) => {
     };
   }, [displayToImage, displaySize]);
 
-  const updateMaskImage = useCallback(displayMask => {
-    if (!displayMask) {
-      setMaskImage(null);
-
-      return;
-    }
-
-    const imageScale = showBorder ? 4 : 1;
-    const maskPixels = showBorder ? 
-      borderPixels(scaleImageData(displayMask, imageSize, imageSize, imageScale), imageSize * imageScale) :
-      [...displayMask];
-
-    setMaskImage(maskToImage(maskPixels, imageSize * imageScale, imageSize * imageScale, label));
-  }, [imageSize, label, showBorder]);
-
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
     const savedMask = savedMasks.current[slice.current];
@@ -99,9 +81,8 @@ export const SamWrapper = ({ imageInfo }) => {
     const labelMask = mask ? applyLabel(mask, label) : null;
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
-    setDisplayMask(displayMask);
-    updateMaskImage(displayMask);    
-  }, [embeddingName, mask, imageSize, label, overWrite, updateMaskImage]);
+    setDisplayMask(displayMask); 
+  }, [embeddingName, mask, imageSize, label, overWrite]);
 
   // Event callbacks
 
@@ -203,7 +184,6 @@ export const SamWrapper = ({ imageInfo }) => {
           const displayMask = combineMasks(savedMasks.current[slice.current]);
 
           setDisplayMask(displayMask);
-          updateMaskImage(displayMask);
 
           // Clear points
           setPoints();
@@ -214,7 +194,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
     mouseDownPoint.current = null;
     mouseDownButton.current = null;
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite, updateMaskImage]);
+  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite]);
 
   // Capture mouse up for entire screen to handle bounding box
   useEffect(() => {
@@ -329,7 +309,8 @@ export const SamWrapper = ({ imageInfo }) => {
       >
         <SamDisplay 
           image={ image }
-          maskImage={ maskImage }
+          mask={ displayMask }
+          label={ label }
           points={ combinedPoints }
           imageSize={ imageSize }
           displaySize={ displaySize }
