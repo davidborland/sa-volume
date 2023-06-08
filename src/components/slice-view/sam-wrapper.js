@@ -1,9 +1,7 @@
 import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
-import { SamDisplay, SliceMarker, LabelDisplay } from 'components/slice-view';
-import { SaveButton } from 'components/save-button';
-import { Options } from 'components/options';
+import { SamDisplay, SliceHeader } from 'components/slice-view';
 import { clamp, combineArrays } from 'utils/array';
 import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
@@ -271,27 +269,11 @@ export const SamWrapper = ({ imageInfo }) => {
 
   return (
     <>      
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}
-      >
-        <div>
-          <SliceMarker 
-            numImages={ numImages } 
-            slice={ slice.current } 
-          />
-        </div>
-        <div>
-          <LabelDisplay label={ label } />
-        </div>
-        <div>
-          <SaveButton />
-          <Options />
-        </div>
-      </div>
+      <SliceHeader 
+        numImages={ numImages }
+        slice={ slice.current }
+        label={ label }
+      />
       <div 
         ref={ div }
         style={{ 
