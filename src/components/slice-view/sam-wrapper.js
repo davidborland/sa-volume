@@ -2,6 +2,7 @@ import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'r
 import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceHeader } from 'components/slice-view';
+import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
 import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
@@ -274,33 +275,35 @@ export const SamWrapper = ({ imageInfo }) => {
         slice={ slice.current }
         label={ label }
       />
-      <div 
-        ref={ div }
-        style={{ 
-          position: 'relative', 
-          userSelect: 'none',
-          outline: 'none',
-          padding: 0,
-          margin: 0,
-          border: '1px solid #424549'
-        }} 
-        onMouseDown={ onMouseDown }  
-        onKeyDown={ onKeyDown }
-        onKeyUp={ onKeyUp }
-        onWheel={ onWheel }
-        onContextMenu={ evt => evt.preventDefault() }
-        tabIndex={ 0 }
-      >
-        <SamDisplay 
-          image={ image }
-          mask={ displayMask }
-          label={ label }
-          points={ combinedPoints }
-          imageSize={ imageSize }
-          displaySize={ displaySize }
-          labelColor={ getLabelColorHex(label) }
-        />
-      </div>   
+      <DragWrapper>
+        <div 
+          ref={ div }
+          style={{ 
+            position: 'relative', 
+            userSelect: 'none',
+            outline: 'none',
+            padding: 0,
+            margin: 0,
+            border: '1px solid #424549'
+          }} 
+          onMouseDown={ onMouseDown }  
+          onKeyDown={ onKeyDown }
+          onKeyUp={ onKeyUp }
+          onWheel={ onWheel }
+          onContextMenu={ evt => evt.preventDefault() }
+          tabIndex={ 0 }
+        >
+          <SamDisplay 
+            image={ image }
+            mask={ displayMask }
+            label={ label }
+            points={ combinedPoints }
+            imageSize={ imageSize }
+            displaySize={ displaySize }
+            labelColor={ getLabelColorHex(label) }
+          />
+        </div>   
+      </DragWrapper>
     </>
   );
 };
