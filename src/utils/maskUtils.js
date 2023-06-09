@@ -157,6 +157,7 @@ export const borderPixels = (mask, imageWidth, imageHeight) => {
   return border;
 };
 
+// Decode Tiff using tiff library
 const decodeTiff = buffer => {
   const ifds = tiff.decode(buffer);
 
@@ -180,6 +181,7 @@ const decodeTiff = buffer => {
   return { data, width, height };
 };
 
+// Load a file to a buffer
 const loadFileToBuffer = file =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -196,14 +198,60 @@ const loadFileToBuffer = file =>
     reader.readAsArrayBuffer(file);
   });
 
+// Test data 
+const addNames = imageInfo => {
+  const imageNames = [];
+  const embeddingNames = [];
 
+  const numDigits = String(imageInfo.numImages).length;
+
+  for (let i = 0; i < imageInfo.numImages; i++)  {
+    const n = String(i + 1).padStart(Math.max(2, numDigits), '0');
+    const s = `${ imageInfo.baseName }${ n }`;
+
+    imageNames.push(s + '.png');
+    embeddingNames.push(s + '.npy');
+  }
+
+  return {
+    ...imageInfo,
+    imageNames,
+    embeddingNames
+  };
+} 
+
+const imageInfo1 = {
+  baseName: `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`,
+  numImages: 8,
+  imageSize: 48
+};
+
+const imageInfo2 = {
+  baseName: `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`,
+  numImages: 8,
+  imageSize: 128
+};  
+
+const imageInfo = addNames(imageInfo2);
+// Get image embedding from service
+const getEmbedding = async (image, index) => {
+  // XXX: Hack for now to simulate loading from service
+
+  const name = imageInfo.embeddingNames[index % imageInfo.numImages];
+
+  console.log(name);
+};
+
+// Load a Tiff image
 export const loadTiff = async file => {
   try {
     const buffer = await loadFileToBuffer(file);
     const { data, width, height } = decodeTiff(buffer);
-    const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
 
-    return images;
+    const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
+    const embeddings = images.map((image, i) => getEmbedding(image, i));
+
+    return { images, embeddings };
   }
   catch (err) {
     console.log(err);

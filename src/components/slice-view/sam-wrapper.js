@@ -19,10 +19,7 @@ const getNewLabel = masks => {
   return labels?.length ? Math.max(...labels) + 1 : 1;
 };
 
-export const SamWrapper = ({ imageInfo, images }) => {
-  // Get image information
-  const { embeddingNames } = imageInfo;
-
+export const SamWrapper = ({ images, embeddings }) => {
   // Context
   const [{ threshold }] = useContext(OptionsContext);
 
@@ -30,7 +27,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
   const [image, setImage] = useState();
-  const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
+  const [embedding, setEmbedding] = useState(embeddings[0]);
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
@@ -56,7 +53,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  const mask = useSam(image, embeddingName, combinedPoints, threshold);
+  const mask = useSam(image, embedding, combinedPoints, threshold);
 
   // Get point coordinates from event
   const getPoint = useCallback(evt => {
@@ -91,7 +88,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask); 
-  }, [embeddingName, mask, label, overWrite]);
+  }, [embedding, mask, label, overWrite]);
 
   // Event callbacks
 
@@ -270,7 +267,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
       slice.current = newSlice;
 
       setImage(images[newSlice]);   
-      setEmbeddingName(embeddingNames[newSlice]);
+      setEmbedding(embeddings[newSlice]);
 
       setPoints();   
       setTempPoints();

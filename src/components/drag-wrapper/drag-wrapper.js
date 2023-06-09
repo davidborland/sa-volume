@@ -29,11 +29,9 @@ export const DragWrapper = ({ show, children }) => {
     const file = evt.dataTransfer.files[0];
 
     if (file.type === 'image/tiff') {
-      const images = await loadTiff(file);
+      const { images, embeddings } = await loadTiff(file);
 
-      // XXX: Get embeddings
-
-      dataDispatch({ type: DATA_SET_IMAGES, images: images });
+      dataDispatch({ type: DATA_SET_IMAGES, images: images, embeddings: embeddings });
     }
     else {
       // XXX: Show message
