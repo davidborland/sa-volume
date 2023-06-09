@@ -30,16 +30,19 @@ export const SamWrapper = ({ imageInfo, images }) => {
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
   const [image, setImage] = useState();
-  const [numImages, setNumImages] = useState(0);
-  const [imageSize, setImageSize] = useState();
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
 
+  // Image info
+  const numImages = images ? images.length : 0;
+  const imageWidth = image ? image.width : 0;
+  const imageHeight = image ? image.height : 0;
+
   // Div reference
   const div = useRef();
-  const { width: displaySize } = useResize(div);
+  const { width: displayWidth, height: displayHeight } = useResize(div);
 
   // Mouse event info
   const mouseDownPoint = useRef();
@@ -55,29 +58,24 @@ export const SamWrapper = ({ imageInfo, images }) => {
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
   const mask = useSam(image, embeddingName, combinedPoints, threshold);
 
-  // Compute original image coordinates from image display coordinates
-  const displayToImage = useCallback(v => v / displaySize * imageSize, [displaySize, imageSize]);
-
   // Get point coordinates from event
   const getPoint = useCallback(evt => {
-    const x = clamp(evt.nativeEvent ? evt.nativeEvent.offsetX : evt.x, 0, displaySize - 1);
-    const y = clamp(evt.nativeEvent ? evt.nativeEvent.offsetY : evt.y, 0, displaySize - 1);
+    const x = clamp(evt.nativeEvent ? evt.nativeEvent.offsetX : evt.x, 0, displayWidth - 1);
+    const y = clamp(evt.nativeEvent ? evt.nativeEvent.offsetY : evt.y, 0, displayHeight - 1);
 
     return {
-      x: displayToImage(x),
-      y: displayToImage(y),
+      x: x / displayWidth * imageWidth,
+      y: y / displayHeight * imageHeight,
       displayX: x,
       displayY: y
     };
-  }, [displayToImage, displaySize]);
+  }, [imageWidth, imageHeight, displayWidth, displayHeight]);
 
   // Set first image on new images
   useEffect(() => {
     const image = images?.length > 0 ? images[0] : null;
 
     setImage(image);
-    setNumImages(images ? images.length : 0);
-    setImageSize(image ? image.width : 0);
   }, [images]);
 
   // Compute new display mask from saved mask and most recent sam result
@@ -93,7 +91,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask); 
-  }, [embeddingName, mask, imageSize, label, overWrite]);
+  }, [embeddingName, mask, label, overWrite]);
 
   // Event callbacks
 
@@ -172,7 +170,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
           );        
 
           // Pick for new label
-          const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
+          const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageWidth);
 
           if (newLabel === 0) {
             setLabel(getNewLabel(savedMasks.current));
@@ -188,7 +186,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
       }
       else if (mouseDownButton.current === 2) {
         // Delete
-        const label = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
+        const label = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageWidth);
 
         if (label !== 0) {
           deleteLabel(savedMasks.current[slice.current], label);
@@ -205,7 +203,7 @@ export const SamWrapper = ({ imageInfo, images }) => {
 
     mouseDownPoint.current = null;
     mouseDownButton.current = null;
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite]);
+  }, [displayMask, getPoint, imageWidth, label, mask, points, tempPoints, overWrite]);
 
   // Capture mouse up for entire screen to handle bounding box
   useEffect(() => {
@@ -309,8 +307,10 @@ export const SamWrapper = ({ imageInfo, images }) => {
             mask={ displayMask }
             label={ label }
             points={ combinedPoints }
-            imageSize={ imageSize }
-            displaySize={ displaySize }
+            imageWidth={ imageWidth }
+            imageHeight={ imageHeight }
+            displayWidth={ displayWidth }
+            displayHeight={ displayHeight }
             labelColor={ getLabelColorHex(label) }
           />
         </div>   

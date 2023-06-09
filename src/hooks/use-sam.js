@@ -54,8 +54,6 @@ export const useSam = (image, embeddingPath, clicks, threshold) => {
         width: width,  // original image width
         samScale: samScale, // scaling factor for image which has been resized to longest side 1024
       });
-      image.width = width; 
-      image.height = height; 
     } 
     catch (error) {
       console.log(error);

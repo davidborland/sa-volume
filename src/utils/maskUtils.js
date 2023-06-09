@@ -106,7 +106,7 @@ export const combineMasks = (m1, m2, overWrite = false) =>
   null;
 
 // Get the label at a given point
-export const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x] : 0;
+export const getLabel = (mask, x, y, imageWidth) => mask ? mask[y * imageWidth + x] : 0;
 
 // Delete a label 
 export const deleteLabel = (mask, label) => 
@@ -115,7 +115,7 @@ export const deleteLabel = (mask, label) =>
   });
 
 // Extract border pixels
-export const borderPixels = (mask, imageSize) => {
+export const borderPixels = (mask, imageWidth, imageHeight) => {
   const border = [...mask];
 
   // XXX: Basically computing a convolution here. Can probably make this faster.
@@ -130,9 +130,9 @@ export const borderPixels = (mask, imageSize) => {
     [0, -1]
   ];
 
-  for (let i = 0; i < imageSize; i++) {
-    for (let j = 0; j < imageSize; j++) {      
-      const index = i * imageSize + j;
+  for (let i = 0; i < imageWidth; i++) {
+    for (let j = 0; j < imageHeight; j++) {      
+      const index = i * imageWidth + j;
       const label = mask[index];
 
       if (mask[index] === 0) continue;
@@ -141,10 +141,10 @@ export const borderPixels = (mask, imageSize) => {
 
       for (let k = 0; k < offsets.length; k++) {
         const offset = offsets[k];
-        const x = clamp(j + offset[1], 0, imageSize - 1);
-        const y = clamp(i + offset[0], 0, imageSize - 1);
+        const x = clamp(j + offset[1], 0, imageWidth - 1);
+        const y = clamp(i + offset[0], 0, imageHeight - 1);
 
-        if (mask[y * imageSize + x] !== label) {
+        if (mask[y * imageWidth + x] !== label) {
           isBorder = true;
           break;
         }

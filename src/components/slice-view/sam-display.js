@@ -12,20 +12,23 @@ const pairs = a => a.reduce((pairs, item, i) => {
   return pairs;
 }, []);
 
-export const SamDisplay = ({ image, mask, label, points, imageSize, displaySize, labelColor }) => {
+export const SamDisplay = ({ 
+  image, mask, label, points, imageWidth, imageHeight, displayWidth, displayHeight, labelColor 
+}) => {
   const [{ interpolate, showBorder, maskOpacity }] = useContext(OptionsContext);
 
-  const imageToDisplay = v => v / imageSize * displaySize;
+  const imageToDisplayX = x => x / imageWidth * displayWidth;
+  const imageToDisplayY = y => y / imageHeight * displayHeight;
 
   let maskImage = null;
    
   if (mask) {
     const imageScale = showBorder ? 4 : 1;
     const maskPixels = showBorder ? 
-      borderPixels(scaleImageData(mask, imageSize, imageSize, imageScale), imageSize * imageScale) :
+      borderPixels(scaleImageData(mask, imageWidth, imageHeight, imageScale), imageWidth * imageScale, imageHeight * imageScale) :
       mask;
 
-    maskImage = maskToImage(maskPixels, imageSize * imageScale, imageSize * imageScale, label);
+    maskImage = maskToImage(maskPixels, imageWidth * imageScale, imageHeight * imageScale, label);
   }
 
   const boxes = points ? pairs(points.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
@@ -65,10 +68,10 @@ export const SamDisplay = ({ image, mask, label, points, imageSize, displaySize,
           key={ i }
           style={{
             position: 'absolute',
-            top: imageToDisplay(box[0].y),
-            left: imageToDisplay(box[0].x),
-            height: imageToDisplay((box[1].y - box[0].y)),
-            width: imageToDisplay((box[1].x - box[0].x)),
+            top: imageToDisplayY(box[0].y),
+            left: imageToDisplayX(box[0].x),
+            height: imageToDisplayY(box[1].y - box[0].y),
+            width: imageToDisplayX(box[1].x - box[0].x),
             pointerEvents: 'none',
             border: '2px dashed #993404',
             borderColor: labelColor,
@@ -82,8 +85,8 @@ export const SamDisplay = ({ image, mask, label, points, imageSize, displaySize,
           style={{
             position: 'absolute',
             // XXX: Hack for + / - offset below
-            top: imageToDisplay(y) - (clickType === 0 ? 26 : 25),
-            left: imageToDisplay(x) - (clickType === 0 ? 6 : 11),
+            top: imageToDisplayY(y) - (clickType === 0 ? 26 : 25),
+            left: imageToDisplayX(x) - (clickType === 0 ? 6 : 11),
             pointerEvents: 'none',
             color: labelColor,
             fontWeight: 'bold',
