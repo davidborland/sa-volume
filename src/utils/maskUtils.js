@@ -1,5 +1,7 @@
+import * as tiff from 'tiff';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
+import { rescale } from 'utils/math';
 
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
@@ -13,7 +15,7 @@ export const thresholdOnnxMask = (input, threshold) => {
 
 // Convert the onnx model mask to ImageData
 const maskToImageData = (input, width, height, currentLabel) => {
-  const arr = new Uint8ClampedArray(4 * width * height).fill(0);
+  const array = new Uint8ClampedArray(4 * width * height).fill(0);
 
   for (let i = 0; i < input.length; i++) {
     const label = input[i];
@@ -21,14 +23,33 @@ const maskToImageData = (input, width, height, currentLabel) => {
     if (label > 0) {
       const [r, g, b] = getLabelColor(label);
 
-      arr[4 * i + 0] = r;
-      arr[4 * i + 1] = g;
-      arr[4 * i + 2] = b;
-      arr[4 * i + 3] = label === currentLabel ? 255 : 127;
+      array[4 * i + 0] = r;
+      array[4 * i + 1] = g;
+      array[4 * i + 2] = b;
+      array[4 * i + 3] = label === currentLabel ? 255 : 127;
     }
   }
 
-  return new ImageData(arr, height, width);
+  return new ImageData(array, height, width);
+};
+
+// Convert intensity values to ImageData
+const intensityToImageData = (input, width, height) => {
+  const array = new Uint8ClampedArray(4 * width * height).fill(0);
+
+  const maxValue = Math.max(...input);
+  const minValue = Math.min(...input);
+
+  for (let i = 0; i < input.length; i++) {
+    const v = rescale(input[i], minValue, maxValue, 0, 255);
+
+    array[4 * i + 0] = v;
+    array[4 * i + 1] = v;
+    array[4 * i + 2] = v;
+    array[4 * i + 3] = 255;
+  }
+
+  return new ImageData(array, height, width);
 };
 
 // Use a Canvas element to produce an image from ImageData
@@ -134,4 +155,59 @@ export const borderPixels = (mask, imageSize) => {
   }
 
   return border;
+};
+
+const decodeTiff = buffer => {
+  const ifds = tiff.decode(buffer);
+
+  if (ifds.length === 0) return null;
+
+  const { width, height } = ifds[0];
+
+  const data = [];
+  ifds.forEach((ifd, z) => {
+    const slice = [];
+    data.push(slice);
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        const v = ifd.data[x * height + y];
+
+        slice[x * height + y] = v;
+      }
+    }
+  });
+
+  return { data, width, height };
+};
+
+const loadFileToBuffer = file =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = evt => {
+      const buffer = evt.target.result;
+      resolve(buffer);
+    };
+    
+    reader.onerror = evt => {
+      reject(evt.target.error);
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
+
+
+export const loadTiff = async file => {
+  try {
+    const buffer = await loadFileToBuffer(file);
+    const { data, width, height } = decodeTiff(buffer);
+    const images = data.map(slice => intensityToImageData(slice, width, height));
+
+    return images;
+  }
+  catch (err) {
+    console.log(err);
+    
+    return null;
+  } 
 };

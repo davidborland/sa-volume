@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Upload } from 'react-bootstrap-icons';
+import { DataContext, DATA_SET_IMAGES } from 'contexts';
+import { loadTiff } from 'utils/maskUtils';
 
 export const DragWrapper = ({ children }) => {
+  const [, dataDispatch] = useContext(DataContext);
   const [dragging, setDragging] = useState(false);
 
   const onDragEnter = evt => {
@@ -20,10 +23,21 @@ export const DragWrapper = ({ children }) => {
     setDragging(false);
   };
 
-  const onDrop = evt => {
+  const onDrop = async evt => {
     evt.preventDefault();
 
-    console.log(evt.dataTransfer.files[0]);
+    const file = evt.dataTransfer.files[0];
+
+    if (file.type === 'image/tiff') {
+      const images = loadTiff(file);
+
+      // XXX: Get embeddings
+
+      dataDispatch({ type: DATA_SET_IMAGES, image: images });
+    }
+    else {
+      // XXX: Show message
+    }
 
     setDragging(false);
   };
