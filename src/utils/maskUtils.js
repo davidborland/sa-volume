@@ -201,7 +201,7 @@ export const loadTiff = async file => {
   try {
     const buffer = await loadFileToBuffer(file);
     const { data, width, height } = decodeTiff(buffer);
-    const images = data.map(slice => intensityToImageData(slice, width, height));
+    const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
 
     return images;
   }

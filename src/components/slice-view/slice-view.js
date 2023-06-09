@@ -1,4 +1,4 @@
-import { useContext } from 'contexts';
+import { useContext } from 'react';
 import { Row, Col } from 'react-bootstrap';
 import { DataContext } from 'contexts';
 import { NiftiWrapper, SamWrapper } from 'components/slice-view';

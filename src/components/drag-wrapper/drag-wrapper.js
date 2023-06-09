@@ -3,7 +3,7 @@ import { Upload } from 'react-bootstrap-icons';
 import { DataContext, DATA_SET_IMAGES } from 'contexts';
 import { loadTiff } from 'utils/maskUtils';
 
-export const DragWrapper = ({ children }) => {
+export const DragWrapper = ({ show, children }) => {
   const [, dataDispatch] = useContext(DataContext);
   const [dragging, setDragging] = useState(false);
 
@@ -29,11 +29,11 @@ export const DragWrapper = ({ children }) => {
     const file = evt.dataTransfer.files[0];
 
     if (file.type === 'image/tiff') {
-      const images = loadTiff(file);
+      const images = await loadTiff(file);
 
       // XXX: Get embeddings
 
-      dataDispatch({ type: DATA_SET_IMAGES, image: images });
+      dataDispatch({ type: DATA_SET_IMAGES, images: images });
     }
     else {
       // XXX: Show message
@@ -45,7 +45,9 @@ export const DragWrapper = ({ children }) => {
   return (
     <div
       style={{
-        position: 'relative'
+        position: 'relative',
+        width: '100%',
+        aspectRatio: '1 / 1',
       }}
       onDragEnter={ onDragEnter }
       onDragOver={ onDragOver }
@@ -53,7 +55,7 @@ export const DragWrapper = ({ children }) => {
       onDrop={ onDrop }
     >
       { children }
-      { dragging && 
+      { (show || dragging) && 
         <div
           style={{
             display: 'flex',

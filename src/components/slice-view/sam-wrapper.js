@@ -19,9 +19,9 @@ const getNewLabel = masks => {
   return labels?.length ? Math.max(...labels) + 1 : 1;
 };
 
-export const SamWrapper = ({ imageInfo }) => {
+export const SamWrapper = ({ imageInfo, images }) => {
   // Get image information
-  const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
+  const { embeddingNames } = imageInfo;
 
   // Context
   const [{ threshold }] = useContext(OptionsContext);
@@ -29,7 +29,9 @@ export const SamWrapper = ({ imageInfo }) => {
   // State
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
-  const [imageName, setImageName] = useState(imageNames[0]);
+  const [image, setImage] = useState();
+  const [numImages, setNumImages] = useState(0);
+  const [imageSize, setImageSize] = useState();
   const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
@@ -51,7 +53,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
+  const mask = useSam(image, embeddingName, combinedPoints, threshold);
 
   // Compute original image coordinates from image display coordinates
   const displayToImage = useCallback(v => v / displaySize * imageSize, [displaySize, imageSize]);
@@ -68,6 +70,15 @@ export const SamWrapper = ({ imageInfo }) => {
       displayY: y
     };
   }, [displayToImage, displaySize]);
+
+  // Set first image on new images
+  useEffect(() => {
+    const image = images?.length > 0 ? images[0] : null;
+
+    setImage(image);
+    setNumImages(images ? images.length : 0);
+    setImageSize(image ? image.width : 0);
+  }, [images]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
@@ -260,7 +271,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
       slice.current = newSlice;
 
-      setImageName(imageNames[newSlice]);   
+      setImage(images[newSlice]);   
       setEmbeddingName(embeddingNames[newSlice]);
 
       setPoints();   
@@ -275,7 +286,7 @@ export const SamWrapper = ({ imageInfo }) => {
         slice={ slice.current }
         label={ label }
       />
-      <DragWrapper>
+      <DragWrapper show={ images?.length === 0 }>
         <div 
           ref={ div }
           style={{ 
