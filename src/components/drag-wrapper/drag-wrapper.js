@@ -1,11 +1,16 @@
 import { useContext, useState } from 'react';
-import { Upload } from 'react-bootstrap-icons';
-import { DataContext, DATA_SET_IMAGES } from 'contexts';
+import { 
+  DataContext, DATA_SET_IMAGES, 
+  ErrorContext, ERROR_SET_MESSAGE
+} from 'contexts';
+import { DragIndicator } from 'components/drag-wrapper';
 import { loadTiff } from 'utils/maskUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [, dataDispatch] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState(null);
 
   const onDragEnter = evt => {
     evt.preventDefault();
@@ -29,15 +34,27 @@ export const DragWrapper = ({ show, children }) => {
     const file = evt.dataTransfer.files[0];
 
     if (file.type === 'image/tiff') {
+      setFileName(file.name);
+
       const { images, embeddings } = await loadTiff(file);
 
-      dataDispatch({ type: DATA_SET_IMAGES, images: images, embeddings: embeddings });
+      dataDispatch({ 
+        type: DATA_SET_IMAGES, 
+        fileName: file.name, 
+        images: images, 
+        embeddings: embeddings 
+      });
     }
     else {
-      // XXX: Show message
+      errorDispatch({ 
+        type: ERROR_SET_MESSAGE, 
+        heading: `Wrong file type: ${ file.type }`,
+        message: 'Please upload a single multi-page TIFF file (image/tiff)' 
+      });
     }
 
     setDragging(false);
+    setFileName(null);
   };
 
   return (
@@ -70,21 +87,10 @@ export const DragWrapper = ({ show, children }) => {
             pointerEvents: 'none'
           }}
         >
-          <div
-            style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              border: '2px dashed #666',
-              aspectRatio: '1 / 1',
-              borderRadius: '50%',
-              padding: 20
-            }}
-          >
-            <div>Upload file</div>
-            <Upload size={ 48 } />
-          </div>
+          <DragIndicator 
+            dragging={ dragging}
+            fileName={ fileName }
+          />
         </div>
       }
     </div>

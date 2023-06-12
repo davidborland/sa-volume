@@ -3,6 +3,7 @@ import { createContext, useReducer } from 'react';
 export const DATA_SET_IMAGES = 'data/SET_IMAGES';
 
 const initialState = {
+  fileName: '',
   images: [],
   embeddings: []
 };
@@ -12,6 +13,7 @@ const reducer = (state, action) => {
     case DATA_SET_IMAGES:
       return {
         ...state,
+        name: action.fileName,
         images: action.images,
         embeddings: action.embeddings
       };
