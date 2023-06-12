@@ -1,16 +1,8 @@
-import { useContext, useState } from 'react';
-import { 
-  DataContext, DATA_SET_IMAGES, 
-  ErrorContext, ERROR_SET_MESSAGE
-} from 'contexts';
+import { useState } from 'react';
 import { DragIndicator } from 'components/drag-wrapper';
-import { loadTiff } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
-  const [, dataDispatch] = useContext(DataContext);
-  const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
-  const [fileName, setFileName] = useState(null);
 
   const onDragEnter = evt => {
     evt.preventDefault();
@@ -28,35 +20,6 @@ export const DragWrapper = ({ show, children }) => {
     setDragging(false);
   };
 
-  const onDrop = async evt => {
-    evt.preventDefault();
-
-    const file = evt.dataTransfer.files[0];
-
-    if (file.type === 'image/tiff') {
-      setFileName(file.name);
-
-      const { images, embeddings } = await loadTiff(file);
-
-      dataDispatch({ 
-        type: DATA_SET_IMAGES, 
-        imageName: file.name, 
-        images: images, 
-        embeddings: embeddings 
-      });
-    }
-    else {
-      errorDispatch({ 
-        type: ERROR_SET_MESSAGE, 
-        heading: `Wrong file type: ${ file.type }`,
-        message: 'Please upload a single multi-page TIFF file (image/tiff)' 
-      });
-    }
-
-    setDragging(false);
-    setFileName(null);
-  };
-
   return (
     <div
       style={{
@@ -67,15 +30,14 @@ export const DragWrapper = ({ show, children }) => {
       onDragEnter={ onDragEnter }
       onDragOver={ onDragOver }
       onDragLeave={ onDragLeave }
-      onDrop={ onDrop }
     >
       { children }
       { (show || dragging) && 
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
             alignItems: 'center',
             position: 'absolute',
             top: 0,
@@ -83,14 +45,11 @@ export const DragWrapper = ({ show, children }) => {
             width: '100%',
             height: '100%',
             background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1,
-            pointerEvents: 'none'
+            zIndex: 1
           }}
         >
-          <DragIndicator 
-            dragging={ dragging}
-            fileName={ fileName }
-          />
+          <DragIndicator type='image' />          
+          <DragIndicator type='mask' />
         </div>
       }
     </div>
