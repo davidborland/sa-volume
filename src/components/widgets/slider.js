@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-
-const rescale = (value, min, max, outMin, outMax) => (value - min) / (max - min) * (outMax - outMin) + outMin;
+import { rescale } from 'utils/math';
 
 export const Slider = ({ 
   label, 

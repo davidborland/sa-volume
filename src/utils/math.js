@@ -1,0 +1,1 @@
+export const rescale = (value, min, max, outMin, outMax) => (value - min) / (max - min) * (outMax - outMin) + outMin;

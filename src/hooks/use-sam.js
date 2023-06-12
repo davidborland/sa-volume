@@ -4,17 +4,15 @@ import { InferenceSession } from 'onnxruntime-web';
 import { useState, useEffect } from 'react';
 import { thresholdOnnxMask } from 'utils/maskUtils';
 import { handleImageScale } from 'utils/scaleHelper';
-import { modelData } from 'utils/onnxModelAPI'
-import npyjs from 'npyjs';
-const ort = require('onnxruntime-web');
+import { modelData } from 'utils/onnxModelAPI';
 
+// XXX: This should probably be a parameter
 const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 //const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
-export const useSam = (imagePath, embeddingPath, clicks, threshold) => {
+export const useSam = (image, embedding, clicks, threshold) => {
   const [model, setModel] = useState(null); // ONNX model
   const [tensor, setTensor] = useState(null); // Image embedding tensor
-  const [image, setImage] = useState(null); // Image
   const [mask, setMask] = useState(null); // Mask
 
   // The ONNX model expects the input to be rescaled to 1024. 
@@ -38,42 +36,27 @@ export const useSam = (imagePath, embeddingPath, clicks, threshold) => {
 
   // Load the image and the SAM pre-computed image embedding
   useEffect(() => {
+    if (!image || !embedding) return;
+
     // Load the image
-    const imageUrl = new URL(imagePath, window.location.origin);
-    loadImage(imageUrl);
+    loadImage(image);
 
     // Load the Segment Anything pre-computed embedding
-    Promise.resolve(loadNpyTensor(embeddingPath, 'float32')).then(
-      (embedding) => setTensor(embedding)
-    );
-  }, [imagePath, embeddingPath]);
+    setTensor(embedding);
+  }, [image, embedding]);
 
-  const loadImage = async (url) => {
+  const loadImage = async image => {
     try {
-      const img = new Image();
-      img.src = url.href;
-      img.onload = () => {
-        const { height, width, samScale } = handleImageScale(img);
-        setModelScale({
-          height: height,  // original image height
-          width: width,  // original image width
-          samScale: samScale, // scaling factor for image which has been resized to longest side 1024
-        });
-        img.width = width; 
-        img.height = height; 
-        setImage(img);
-      };
-    } catch (error) {
+      const { height, width, samScale } = handleImageScale(image);
+      setModelScale({
+        height: height,  // original image height
+        width: width,  // original image width
+        samScale: samScale, // scaling factor for image which has been resized to longest side 1024
+      });
+    } 
+    catch (error) {
       console.log(error);
     }
-  };
-
-  // Decode a Numpy file into a tensor. 
-  const loadNpyTensor = async (tensorFile, dType) => {
-    let npLoader = new npyjs();
-    const npArray = await npLoader.load(tensorFile);
-    const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
-    return tensor;
   };
 
   // Run the ONNX model every time clicks has changed
@@ -118,5 +101,5 @@ export const useSam = (imagePath, embeddingPath, clicks, threshold) => {
     runONNX();
   }, [model, clicks, threshold, tensor, modelScale]);
 
-  return { image, mask };
+  return mask;
 };

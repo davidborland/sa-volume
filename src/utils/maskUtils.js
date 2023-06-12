@@ -1,5 +1,9 @@
+import * as tiff from 'tiff';
+import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
+import { rescale } from 'utils/math';
+const ort = require('onnxruntime-web');
 
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
@@ -13,7 +17,7 @@ export const thresholdOnnxMask = (input, threshold) => {
 
 // Convert the onnx model mask to ImageData
 const maskToImageData = (input, width, height, currentLabel) => {
-  const arr = new Uint8ClampedArray(4 * width * height).fill(0);
+  const array = new Uint8ClampedArray(4 * width * height).fill(0);
 
   for (let i = 0; i < input.length; i++) {
     const label = input[i];
@@ -21,14 +25,33 @@ const maskToImageData = (input, width, height, currentLabel) => {
     if (label > 0) {
       const [r, g, b] = getLabelColor(label);
 
-      arr[4 * i + 0] = r;
-      arr[4 * i + 1] = g;
-      arr[4 * i + 2] = b;
-      arr[4 * i + 3] = label === currentLabel ? 255 : 127;
+      array[4 * i + 0] = r;
+      array[4 * i + 1] = g;
+      array[4 * i + 2] = b;
+      array[4 * i + 3] = label === currentLabel ? 255 : 127;
     }
   }
 
-  return new ImageData(arr, height, width);
+  return new ImageData(array, height, width);
+};
+
+// Convert intensity values to ImageData
+const intensityToImageData = (input, width, height) => {
+  const array = new Uint8ClampedArray(4 * width * height).fill(0);
+
+  const maxValue = Math.max(...input);
+  const minValue = Math.min(...input);
+
+  for (let i = 0; i < input.length; i++) {
+    const v = rescale(input[i], minValue, maxValue, 0, 255);
+
+    array[4 * i + 0] = v;
+    array[4 * i + 1] = v;
+    array[4 * i + 2] = v;
+    array[4 * i + 3] = 255;
+  }
+
+  return new ImageData(array, height, width);
 };
 
 // Use a Canvas element to produce an image from ImageData
@@ -85,7 +108,7 @@ export const combineMasks = (m1, m2, overWrite = false) =>
   null;
 
 // Get the label at a given point
-export const getLabel = (mask, x, y, imageSize) => mask ? mask[y * imageSize + x] : 0;
+export const getLabel = (mask, x, y, imageWidth) => mask ? mask[y * imageWidth + x] : 0;
 
 // Delete a label 
 export const deleteLabel = (mask, label) => 
@@ -94,7 +117,7 @@ export const deleteLabel = (mask, label) =>
   });
 
 // Extract border pixels
-export const borderPixels = (mask, imageSize) => {
+export const borderPixels = (mask, imageWidth, imageHeight) => {
   const border = [...mask];
 
   // XXX: Basically computing a convolution here. Can probably make this faster.
@@ -109,9 +132,9 @@ export const borderPixels = (mask, imageSize) => {
     [0, -1]
   ];
 
-  for (let i = 0; i < imageSize; i++) {
-    for (let j = 0; j < imageSize; j++) {      
-      const index = i * imageSize + j;
+  for (let i = 0; i < imageWidth; i++) {
+    for (let j = 0; j < imageHeight; j++) {      
+      const index = i * imageWidth + j;
       const label = mask[index];
 
       if (mask[index] === 0) continue;
@@ -120,10 +143,10 @@ export const borderPixels = (mask, imageSize) => {
 
       for (let k = 0; k < offsets.length; k++) {
         const offset = offsets[k];
-        const x = clamp(j + offset[1], 0, imageSize - 1);
-        const y = clamp(i + offset[0], 0, imageSize - 1);
+        const x = clamp(j + offset[1], 0, imageWidth - 1);
+        const y = clamp(i + offset[0], 0, imageHeight - 1);
 
-        if (mask[y * imageSize + x] !== label) {
+        if (mask[y * imageWidth + x] !== label) {
           isBorder = true;
           break;
         }
@@ -134,4 +157,118 @@ export const borderPixels = (mask, imageSize) => {
   }
 
   return border;
+};
+
+// Decode Tiff using tiff library
+const decodeTiff = buffer => {
+  const ifds = tiff.decode(buffer);
+
+  if (ifds.length === 0) return null;
+
+  const { width, height } = ifds[0];
+
+  const data = [];
+  ifds.forEach((ifd, z) => {
+    const slice = [];
+    data.push(slice);
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        const v = ifd.data[x * height + y];
+
+        slice[x * height + y] = v;
+      }
+    }
+  });
+
+  return { data, width, height };
+};
+
+// Load a file to a buffer
+const loadFileToBuffer = file =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = evt => {
+      const buffer = evt.target.result;
+      resolve(buffer);
+    };
+    
+    reader.onerror = evt => {
+      reject(evt.target.error);
+    };
+    
+    reader.readAsArrayBuffer(file);
+  });
+
+// Test data 
+const addNames = imageInfo => {
+  const imageNames = [];
+  const embeddingNames = [];
+
+  const numDigits = String(imageInfo.numImages).length;
+
+  for (let i = 0; i < imageInfo.numImages; i++)  {
+    const n = String(i + 1).padStart(Math.max(2, numDigits), '0');
+    const s = `${ imageInfo.baseName }${ n }`;
+
+    imageNames.push(s + '.png');
+    embeddingNames.push(s + '.npy');
+  }
+
+  return {
+    ...imageInfo,
+    imageNames,
+    embeddingNames
+  };
+} 
+
+const imageInfo1 = {
+  baseName: `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`,
+  numImages: 8,
+  imageSize: 48
+};
+
+const imageInfo2 = {
+  baseName: `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`,
+  numImages: 8,
+  imageSize: 128
+};  
+
+const imageInfo = addNames(imageInfo2);
+
+// Decode a Numpy file into a tensor. 
+const loadNpyTensor = async (tensorFile, dType) => {
+  let npLoader = new npyjs();
+  const npArray = await npLoader.load(tensorFile);
+  const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
+
+  return tensor;
+};
+
+// Get image embedding from service
+const getEmbedding = async (image, index) => {
+  // XXX: Hack for now to simulate loading from service
+  const name = imageInfo.embeddingNames[index % imageInfo.numImages];
+
+  const embedding = await loadNpyTensor(name, 'float32');
+
+  return embedding;
+};
+
+// Load a Tiff image
+export const loadTiff = async file => {
+  try {
+    const buffer = await loadFileToBuffer(file);
+    const { data, width, height } = decodeTiff(buffer);
+
+    const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
+    const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
+
+    return { images, embeddings };
+  }
+  catch (err) {
+    console.log(err);
+    
+    return null;
+  } 
 };

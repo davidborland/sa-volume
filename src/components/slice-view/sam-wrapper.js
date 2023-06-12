@@ -2,6 +2,7 @@ import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'r
 import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceHeader } from 'components/slice-view';
+import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
 import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
 import { getLabelColorHex } from 'utils/colors';
@@ -18,25 +19,27 @@ const getNewLabel = masks => {
   return labels?.length ? Math.max(...labels) + 1 : 1;
 };
 
-export const SamWrapper = ({ imageInfo }) => {
-  // Get image information
-  const { imageNames, embeddingNames, numImages, imageSize } = imageInfo;
-
+export const SamWrapper = ({ images, embeddings }) => {
   // Context
   const [{ threshold }] = useContext(OptionsContext);
 
   // State
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
-  const [imageName, setImageName] = useState(imageNames[0]);
-  const [embeddingName, setEmbeddingName] = useState(embeddingNames[0]);
+  const [image, setImage] = useState();
+  const [embedding, setEmbedding] = useState();
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
 
+  // Image info
+  const numImages = images ? images.length : 0;
+  const imageWidth = image ? image.width : 0;
+  const imageHeight = image ? image.height : 0;
+
   // Div reference
   const div = useRef();
-  const { width: displaySize } = useResize(div);
+  const { width: displayWidth, height: displayHeight } = useResize(div);
 
   // Mouse event info
   const mouseDownPoint = useRef();
@@ -50,23 +53,29 @@ export const SamWrapper = ({ imageInfo }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  const { image, mask } = useSam(imageName, embeddingName, combinedPoints, threshold);
-
-  // Compute original image coordinates from image display coordinates
-  const displayToImage = useCallback(v => v / displaySize * imageSize, [displaySize, imageSize]);
+  const mask = useSam(image, embedding, combinedPoints, threshold);
 
   // Get point coordinates from event
   const getPoint = useCallback(evt => {
-    const x = clamp(evt.nativeEvent ? evt.nativeEvent.offsetX : evt.x, 0, displaySize - 1);
-    const y = clamp(evt.nativeEvent ? evt.nativeEvent.offsetY : evt.y, 0, displaySize - 1);
+    const x = clamp(evt.nativeEvent ? evt.nativeEvent.offsetX : evt.x, 0, displayWidth - 1);
+    const y = clamp(evt.nativeEvent ? evt.nativeEvent.offsetY : evt.y, 0, displayHeight - 1);
 
     return {
-      x: displayToImage(x),
-      y: displayToImage(y),
+      x: x / displayWidth * imageWidth,
+      y: y / displayHeight * imageHeight,
       displayX: x,
       displayY: y
     };
-  }, [displayToImage, displaySize]);
+  }, [imageWidth, imageHeight, displayWidth, displayHeight]);
+
+  // Set first image on new images
+  useEffect(() => {
+    const image = images?.length > 0 ? images[0] : null;
+    const embedding = embeddings?.length > 0 ? embeddings[0] : null;
+
+    setImage(image);
+    setEmbedding(embedding);
+  }, [images, embeddings]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
@@ -81,7 +90,7 @@ export const SamWrapper = ({ imageInfo }) => {
     const displayMask = combineMasks(savedMask, labelMask, overWrite);
 
     setDisplayMask(displayMask); 
-  }, [embeddingName, mask, imageSize, label, overWrite]);
+  }, [embedding, mask, label, overWrite]);
 
   // Event callbacks
 
@@ -160,7 +169,7 @@ export const SamWrapper = ({ imageInfo }) => {
           );        
 
           // Pick for new label
-          const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
+          const newLabel = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageWidth);
 
           if (newLabel === 0) {
             setLabel(getNewLabel(savedMasks.current));
@@ -176,7 +185,7 @@ export const SamWrapper = ({ imageInfo }) => {
       }
       else if (mouseDownButton.current === 2) {
         // Delete
-        const label = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageSize);
+        const label = getLabel(displayMask, Math.round(mousePoint.current.x), Math.round(mousePoint.current.y), imageWidth);
 
         if (label !== 0) {
           deleteLabel(savedMasks.current[slice.current], label);
@@ -193,7 +202,7 @@ export const SamWrapper = ({ imageInfo }) => {
 
     mouseDownPoint.current = null;
     mouseDownButton.current = null;
-  }, [displayMask, getPoint, imageSize, label, mask, points, tempPoints, overWrite]);
+  }, [displayMask, getPoint, imageWidth, label, mask, points, tempPoints, overWrite]);
 
   // Capture mouse up for entire screen to handle bounding box
   useEffect(() => {
@@ -259,8 +268,8 @@ export const SamWrapper = ({ imageInfo }) => {
 
       slice.current = newSlice;
 
-      setImageName(imageNames[newSlice]);   
-      setEmbeddingName(embeddingNames[newSlice]);
+      setImage(images[newSlice]);   
+      setEmbedding(embeddings[newSlice]);
 
       setPoints();   
       setTempPoints();
@@ -274,33 +283,37 @@ export const SamWrapper = ({ imageInfo }) => {
         slice={ slice.current }
         label={ label }
       />
-      <div 
-        ref={ div }
-        style={{ 
-          position: 'relative', 
-          userSelect: 'none',
-          outline: 'none',
-          padding: 0,
-          margin: 0,
-          border: '1px solid #424549'
-        }} 
-        onMouseDown={ onMouseDown }  
-        onKeyDown={ onKeyDown }
-        onKeyUp={ onKeyUp }
-        onWheel={ onWheel }
-        onContextMenu={ evt => evt.preventDefault() }
-        tabIndex={ 0 }
-      >
-        <SamDisplay 
-          image={ image }
-          mask={ displayMask }
-          label={ label }
-          points={ combinedPoints }
-          imageSize={ imageSize }
-          displaySize={ displaySize }
-          labelColor={ getLabelColorHex(label) }
-        />
-      </div>   
+      <DragWrapper show={ images?.length === 0 }>
+        <div 
+          ref={ div }
+          style={{ 
+            position: 'relative', 
+            userSelect: 'none',
+            outline: 'none',
+            padding: 0,
+            margin: 0,
+            border: '1px solid #424549'
+          }} 
+          onMouseDown={ onMouseDown }  
+          onKeyDown={ onKeyDown }
+          onKeyUp={ onKeyUp }
+          onWheel={ onWheel }
+          onContextMenu={ evt => evt.preventDefault() }
+          tabIndex={ 0 }
+        >
+          <SamDisplay 
+            image={ image }
+            mask={ displayMask }
+            label={ label }
+            points={ combinedPoints }
+            imageWidth={ imageWidth }
+            imageHeight={ imageHeight }
+            displayWidth={ displayWidth }
+            displayHeight={ displayHeight }
+            labelColor={ getLabelColorHex(label) }
+          />
+        </div>   
+      </DragWrapper>
     </>
   );
 };
