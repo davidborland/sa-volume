@@ -1,7 +1,9 @@
 import * as tiff from 'tiff';
+import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 import { rescale } from 'utils/math';
+const ort = require('onnxruntime-web');
 
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
@@ -233,13 +235,24 @@ const imageInfo2 = {
 };  
 
 const imageInfo = addNames(imageInfo2);
+
+// Decode a Numpy file into a tensor. 
+const loadNpyTensor = async (tensorFile, dType) => {
+  let npLoader = new npyjs();
+  const npArray = await npLoader.load(tensorFile);
+  const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
+
+  return tensor;
+};
+
 // Get image embedding from service
 const getEmbedding = async (image, index) => {
   // XXX: Hack for now to simulate loading from service
-
   const name = imageInfo.embeddingNames[index % imageInfo.numImages];
 
-  console.log(name);
+  const embedding = await loadNpyTensor(name, 'float32');
+
+  return embedding;
 };
 
 // Load a Tiff image
@@ -249,7 +262,7 @@ export const loadTiff = async file => {
     const { data, width, height } = decodeTiff(buffer);
 
     const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
-    const embeddings = images.map((image, i) => getEmbedding(image, i));
+    const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
 
     return { images, embeddings };
   }

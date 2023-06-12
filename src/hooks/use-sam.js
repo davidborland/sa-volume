@@ -4,9 +4,7 @@ import { InferenceSession } from 'onnxruntime-web';
 import { useState, useEffect } from 'react';
 import { thresholdOnnxMask } from 'utils/maskUtils';
 import { handleImageScale } from 'utils/scaleHelper';
-import { modelData } from 'utils/onnxModelAPI'
-import npyjs from 'npyjs';
-const ort = require('onnxruntime-web');
+import { modelData } from 'utils/onnxModelAPI';
 
 const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 //const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
@@ -56,14 +54,6 @@ export const useSam = (image, embedding, clicks, threshold) => {
     catch (error) {
       console.log(error);
     }
-  };
-
-  // Decode a Numpy file into a tensor. 
-  const loadNpyTensor = async (tensorFile, dType) => {
-    let npLoader = new npyjs();
-    const npArray = await npLoader.load(tensorFile);
-    const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
-    return tensor;
   };
 
   // Run the ONNX model every time clicks has changed
