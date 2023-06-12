@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { OptionsContext } from 'contexts';
-import { maskToImage, scaleImageData, borderPixels } from 'utils/maskUtils';
+import { maskToImage, scaleImageData, borderPixels } from 'utils/imageUtils';
 
 const pairs = a => a.reduce((pairs, item, i) => {
   if (i % 2 === 0) {

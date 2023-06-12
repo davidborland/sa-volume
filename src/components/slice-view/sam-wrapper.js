@@ -4,7 +4,9 @@ import { useSam, useResize } from 'hooks';
 import { SamDisplay, SliceHeader } from 'components/slice-view';
 import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
-import { applyLabel, combineMasks, getLabel, deleteLabel } from 'utils/maskUtils';
+import { 
+  applyLabel, combineMasks, getLabel, deleteLabel, saveTIFF, getMaskName 
+} from 'utils/imageUtils';
 import { getLabelColorHex } from 'utils/colors';
 
 const getRelativePosition = (evt, div) => {
@@ -19,7 +21,7 @@ const getNewLabel = masks => {
   return labels?.length ? Math.max(...labels) + 1 : 1;
 };
 
-export const SamWrapper = ({ images, embeddings }) => {
+export const SamWrapper = ({ images, embeddings, imageName }) => {
   // Context
   const [{ threshold }] = useContext(OptionsContext);
 
@@ -276,12 +278,35 @@ export const SamWrapper = ({ images, embeddings }) => {
     }
   };
 
+  const onSave = () => {
+    savedMasks.current[slice.current] = combineMasks(
+      savedMasks.current[slice.current], 
+      mask ? applyLabel(mask, label) : null, overWrite.current
+    );
+
+    setPoints();   
+    setTempPoints();
+
+    // Handle null masks
+    // XXX: Should probably just create zero filled masks when loading
+    const masks = [];
+    for (let i = 0; i < numImages; i++) {
+      masks.push(i < savedMasks.current.length && savedMasks.current[i] ? 
+        savedMasks.current[i] : 
+        Array(imageWidth * imageHeight).fill(0)
+      );
+    }
+
+    saveTIFF(masks, imageWidth, imageHeight, getMaskName(imageName));
+  };
+
   return (
     <>      
       <SliceHeader 
         numImages={ numImages }
         slice={ slice.current }
         label={ label }
+        onSave= { onSave }
       />
       <DragWrapper show={ images?.length === 0 }>
         <div 

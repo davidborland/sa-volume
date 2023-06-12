@@ -4,7 +4,7 @@ import {
   ErrorContext, ERROR_SET_MESSAGE
 } from 'contexts';
 import { DragIndicator } from 'components/drag-wrapper';
-import { loadTiff } from 'utils/maskUtils';
+import { loadTiff } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [, dataDispatch] = useContext(DataContext);
@@ -40,7 +40,7 @@ export const DragWrapper = ({ show, children }) => {
 
       dataDispatch({ 
         type: DATA_SET_IMAGES, 
-        fileName: file.name, 
+        imageName: file.name, 
         images: images, 
         embeddings: embeddings 
       });

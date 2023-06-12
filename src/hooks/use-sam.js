@@ -2,7 +2,7 @@
 
 import { InferenceSession } from 'onnxruntime-web';
 import { useState, useEffect } from 'react';
-import { thresholdOnnxMask } from 'utils/maskUtils';
+import { thresholdOnnxMask } from 'utils/imageUtils';
 import { handleImageScale } from 'utils/scaleHelper';
 import { modelData } from 'utils/onnxModelAPI';
 

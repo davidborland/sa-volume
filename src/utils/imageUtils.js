@@ -1,8 +1,8 @@
-import * as tiff from 'tiff';
 import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 import { rescale } from 'utils/math';
+import { decodeTiff, encodeTiff } from 'utils/tiffUtils';
 const ort = require('onnxruntime-web');
 
 // Threshold the mask prediction values
@@ -159,30 +159,6 @@ export const borderPixels = (mask, imageWidth, imageHeight) => {
   return border;
 };
 
-// Decode Tiff using tiff library
-const decodeTiff = buffer => {
-  const ifds = tiff.decode(buffer);
-
-  if (ifds.length === 0) return null;
-
-  const { width, height } = ifds[0];
-
-  const data = [];
-  ifds.forEach((ifd, z) => {
-    const slice = [];
-    data.push(slice);
-    for (let x = 0; x < width; x++) {
-      for (let y = 0; y < height; y++) {
-        const v = ifd.data[x * height + y];
-
-        slice[x * height + y] = v;
-      }
-    }
-  });
-
-  return { data, width, height };
-};
-
 // Load a file to a buffer
 const loadFileToBuffer = file =>
   new Promise((resolve, reject) => {
@@ -222,19 +198,17 @@ const addNames = imageInfo => {
   };
 } 
 
-const imageInfo1 = {
+const imageInfo1 = addNames({
   baseName: `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`,
   numImages: 8,
   imageSize: 48
-};
+});
 
-const imageInfo2 = {
+const imageInfo2 = addNames({
   baseName: `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`,
   numImages: 8,
   imageSize: 128
-};  
-
-const imageInfo = addNames(imageInfo2);
+});  
 
 // Decode a Numpy file into a tensor. 
 const loadNpyTensor = async (tensorFile, dType) => {
@@ -247,6 +221,8 @@ const loadNpyTensor = async (tensorFile, dType) => {
 
 // Get image embedding from service
 const getEmbedding = async (image, index) => {
+  const imageInfo = image.name.includes(imageInfo1.baseName) ? imageInfo1 : imageInfo2;
+
   // XXX: Hack for now to simulate loading from service
   const name = imageInfo.embeddingNames[index % imageInfo.numImages];
 
@@ -271,4 +247,32 @@ export const loadTiff = async file => {
     
     return null;
   } 
+};
+
+// Save a TIFF image
+export const saveTIFF = async (masks, width, height, fileName) => {
+  const buffer = encodeTiff(masks, width, height);
+
+  const blob = new Blob([buffer], { type: 'image/tiff' });
+
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = fileName;
+
+  document.body.appendChild(a);
+  a.click();
+  
+  window.URL.revokeObjectURL(url); 
+  a.remove();
+};
+
+export const getMaskName = imageName => {
+  let i = imageName.lastIndexOf('.');
+  
+  if (i < 0) i = imageName.length;
+
+  return imageName.slice(0, i - 1) + '_mask' + imageName.slice(i);
 };
