@@ -27,7 +27,7 @@ export const SamWrapper = ({ images, embeddings }) => {
   const [points, setPoints] = useState([]);
   const [tempPoints, setTempPoints] = useState();
   const [image, setImage] = useState();
-  const [embedding, setEmbedding] = useState(embeddings[0]);
+  const [embedding, setEmbedding] = useState();
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
@@ -71,9 +71,11 @@ export const SamWrapper = ({ images, embeddings }) => {
   // Set first image on new images
   useEffect(() => {
     const image = images?.length > 0 ? images[0] : null;
+    const embedding = embeddings?.length > 0 ? embeddings[0] : null;
 
     setImage(image);
-  }, [images]);
+    setEmbedding(embedding);
+  }, [images, embeddings]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {

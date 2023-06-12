@@ -6,6 +6,7 @@ import { thresholdOnnxMask } from 'utils/maskUtils';
 import { handleImageScale } from 'utils/scaleHelper';
 import { modelData } from 'utils/onnxModelAPI';
 
+// XXX: This should probably be a parameter
 const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_quantized_example.onnx`;
 //const MODEL_PATH = `${ process.env.PUBLIC_URL }/data/onnx/sam_onnx_example.onnx`;
 
@@ -35,6 +36,8 @@ export const useSam = (image, embedding, clicks, threshold) => {
 
   // Load the image and the SAM pre-computed image embedding
   useEffect(() => {
+    if (!image || !embedding) return;
+
     // Load the image
     loadImage(image);
 
