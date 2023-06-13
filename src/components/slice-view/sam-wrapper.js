@@ -51,7 +51,7 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
 
   // Other references
   const slice = useRef(0);
-  const savedMasks = useRef(Array(numImages).fill(null));
+  const savedMasks = useRef();
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
@@ -77,15 +77,15 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
 
     setImage(image);
     setEmbedding(embedding);
-  }, [images, embeddings]);
+    slice.current = 0;
 
-  // Set mask if new mask passed in
-  useEffect(() => {
-    if (!masks) return;
+    if (masks) {
+      savedMasks.current = masks.map(mask => [...mask]);
+      setDisplayMask(savedMasks.current[0]);
+    }
 
-    savedMasks.current = masks.map(mask => [...mask]);
-    setDisplayMask(savedMasks.current[0]);
-  }, [masks]);
+    setLabel(getNewLabel(savedMasks.current));
+  }, [images, embeddings, masks]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
