@@ -24,7 +24,7 @@ export const SliceView = () => {
           { wrapper }
         </div>
       </Col>
-      <Col md={ 4 }>
+      <Col md={ 4 } className='mt-2'>
         <ControlDocumentation />
       </Col>
     </Row>

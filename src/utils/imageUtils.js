@@ -329,5 +329,5 @@ export const getMaskName = imageName => {
   
   if (i < 0) i = imageName.length;
 
-  return imageName.slice(0, i - 1) + '_mask' + imageName.slice(i);
+  return imageName.slice(0, i) + '_mask' + imageName.slice(i);
 };

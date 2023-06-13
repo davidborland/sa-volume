@@ -294,7 +294,7 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
     setPoints();   
     setTempPoints();
 
-    saveTIFF(masks, imageWidth, imageHeight, getMaskName(imageName));
+    saveTIFF(savedMasks.current, imageWidth, imageHeight, getMaskName(imageName));
   };
 
   return (
