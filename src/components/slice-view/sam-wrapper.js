@@ -7,7 +7,6 @@ import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, getLabel, deleteLabel, saveTIFF, getMaskName 
 } from 'utils/imageUtils';
-import { getLabelColorHex } from 'utils/colors';
 
 const getRelativePosition = (evt, div) => {
   const rect = div.getBoundingClientRect();

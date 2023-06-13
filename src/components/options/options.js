@@ -79,7 +79,7 @@ export const Options = () => {
             /> 
             <Slider 
               label='Threshold'
-              description='Threshold for converting probabilities to binary mask. Usually best to leave at the default value.'
+              description='Threshold for converting segment anything probabilities to binary mask. Usually best to leave at the default value.'
               value={ threshold }
               defaultValue={ 0.5 }
               min={ 0 }
