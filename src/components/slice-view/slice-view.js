@@ -7,13 +7,14 @@ import { ControlDocumentation } from 'components/control-documentation';
 //const niftiUrl = `${ process.env.PUBLIC_URL }/data/images/test_image/test_image.nii`;
 
 export const SliceView = () => {  
-  const [{ images, embeddings, imageName }] = useContext(DataContext);
+  const [{ imageName, images, embeddings, masks }] = useContext(DataContext);
 
   //const wrapper = <NiftiWrapper url={ niftiUrl } />;
   const wrapper = <SamWrapper 
+    imageName={ imageName }
     images={ images } 
     embeddings={ embeddings }
-    imageName={ imageName }
+    masks={ masks }
   />
 
   return (

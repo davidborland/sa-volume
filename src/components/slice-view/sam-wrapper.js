@@ -21,7 +21,7 @@ const getNewLabel = masks => {
   return labels?.length ? Math.max(...labels) + 1 : 1;
 };
 
-export const SamWrapper = ({ images, embeddings, imageName }) => {
+export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
   // Context
   const [{ threshold }] = useContext(OptionsContext);
 
@@ -78,6 +78,14 @@ export const SamWrapper = ({ images, embeddings, imageName }) => {
     setImage(image);
     setEmbedding(embedding);
   }, [images, embeddings]);
+
+  // Set mask if new mask passed in
+  useEffect(() => {
+    if (!masks) return;
+
+    savedMasks.current = masks.map(mask => [...mask]);
+    setDisplayMask(savedMasks.current[0]);
+  }, [masks]);
 
   // Compute new display mask from saved mask and most recent sam result
   useEffect(() => {
@@ -286,16 +294,6 @@ export const SamWrapper = ({ images, embeddings, imageName }) => {
 
     setPoints();   
     setTempPoints();
-
-    // Handle null masks
-    // XXX: Should probably just create zero filled masks when loading
-    const masks = [];
-    for (let i = 0; i < numImages; i++) {
-      masks.push(i < savedMasks.current.length && savedMasks.current[i] ? 
-        savedMasks.current[i] : 
-        Array(imageWidth * imageHeight).fill(0)
-      );
-    }
 
     saveTIFF(masks, imageWidth, imageHeight, getMaskName(imageName));
   };

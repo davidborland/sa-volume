@@ -232,21 +232,25 @@ const getEmbedding = async (image, index) => {
 };
 
 // Load a Tiff image
-export const loadTiff = async file => {
+export const loadTiff = async (file, mask = false) => {
   try {
     const buffer = await loadFileToBuffer(file);
     const { data, width, height } = decodeTiff(buffer);
 
-    const images = data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
-    const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
-
-    return { images, embeddings };
+    return mask ? data.map(slice => slice.flat()) :
+      data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
   }
   catch (err) {
     console.log(err);
     
     return null;
   } 
+};
+
+export const getEmbeddings = async images => {
+  const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
+
+  return embeddings;
 };
 
 // Save a TIFF image

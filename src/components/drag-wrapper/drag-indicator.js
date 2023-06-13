@@ -2,22 +2,18 @@ import { useState, useContext } from 'react';
 import { Spinner } from 'react-bootstrap';
 import { Upload } from 'react-bootstrap-icons';
 import { 
-  DataContext, DATA_SET_IMAGES, 
+  DataContext, DATA_SET_IMAGES, DATA_SET_MASKS,
   ErrorContext, ERROR_SET_MESSAGE
 } from 'contexts';
-import { loadTiff } from 'utils/imageUtils';
+import { getEmbeddings, loadTiff } from 'utils/imageUtils';
 
-export const DragIndicator = ({ type }) => {
+export const DragIndicator = ({ type, onDrop }) => {
   const [, dataDispatch] = useContext(DataContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState(null);
 
   const onDragEnter = evt => {
-
-
-    console.log("LSDKFJ")
-
     evt.preventDefault();
 
     setDragging(true);
@@ -26,9 +22,7 @@ export const DragIndicator = ({ type }) => {
   const onDragOver = evt => {
     evt.preventDefault();
 
-    console.log("LSDKJF");
     setDragging(true);
-    
   };
 
   const onDragLeave = evt => {
@@ -37,7 +31,7 @@ export const DragIndicator = ({ type }) => {
     setDragging(false);
   };
 
-  const onDrop = async evt => {
+  const handleDrop = async evt => {
     evt.preventDefault();
 
     const file = evt.dataTransfer.files[0];
@@ -45,14 +39,26 @@ export const DragIndicator = ({ type }) => {
     if (file.type === 'image/tiff') {
       setFileName(file.name);
 
-      const { images, embeddings } = await loadTiff(file);
+      if (type === 'mask') {
+        const masks = await loadTiff(file, true);
 
-      dataDispatch({ 
-        type: DATA_SET_IMAGES, 
-        imageName: file.name, 
-        images: images, 
-        embeddings: embeddings 
-      });
+        dataDispatch({ 
+          type: DATA_SET_MASKS, 
+          maskName: file.name, 
+          masks: masks
+        });
+      }
+      else {
+        const images = await loadTiff(file);
+        const embeddings = await getEmbeddings(images);
+
+        dataDispatch({ 
+          type: DATA_SET_IMAGES, 
+          imageName: file.name, 
+          images: images, 
+          embeddings: embeddings 
+        });
+      }
     }
     else {
       errorDispatch({ 
@@ -64,7 +70,11 @@ export const DragIndicator = ({ type }) => {
 
     setDragging(false);
     setFileName(null);
+
+    onDrop();
   };
+
+  const size = 180;
 
   return (
     <div
@@ -76,28 +86,39 @@ export const DragIndicator = ({ type }) => {
         borderWidth: 2,
         borderStyle: 'dashed',              
         borderColor: fileName ? 'rgba(0, 0, 0, 0)' : dragging ? '#fff' : '#666',
-        aspectRatio: '1 / 1',
         borderRadius: '50%',
-        padding: 20
+        width: size,
+        height: size,
+        padding: 20,
+        textAlign: 'center',
+        pointerEvents: 'all'
       }}
       onDragEnter={ onDragEnter }
       onDragOver={ onDragOver }
       onDragLeave={ onDragLeave }
-      onDrop={ onDrop }
+      onDrop={ handleDrop }
     >
-      {
-        fileName ? 
-        <>
-          <div>Loading...</div>
-          <Spinner className='my-1' style={{ width: 48, height: 48 }} />
-          <div className='small text-muted'>{ fileName }</div>
-        </>      
-      :
-        <>
-          <div>Upload { type } file</div>
-          <Upload size={ 48 } />
-        </>
-      }
+      <div style={{ pointerEvents: 'none' }}>
+        {
+          fileName ? 
+          <>
+            <div>Loading...</div>
+            <Spinner className='my-1' style={{ width: 48, height: 48 }} />
+            <div className='small text-muted'>{ fileName }</div>
+          </>      
+        :
+          <>
+            <div>
+              { type === 'mask' ?
+                <>Load mask for current image</>
+              :
+                <>Load new image</>
+              }
+            </div>
+            <Upload className='mt-1' size={ 48 } />
+          </>
+        }
+      </div>
     </div>
   );
 };

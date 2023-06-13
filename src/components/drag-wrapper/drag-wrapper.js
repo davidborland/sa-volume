@@ -17,6 +17,12 @@ export const DragWrapper = ({ show, children }) => {
   const onDragLeave = evt => {
     evt.preventDefault();
 
+    if (!evt.currentTarget.contains(evt.relatedTarget)) {
+      setDragging(false);
+    }
+  };
+
+  const onDrop = () => {
     setDragging(false);
   };
 
@@ -45,11 +51,20 @@ export const DragWrapper = ({ show, children }) => {
             width: '100%',
             height: '100%',
             background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1
+            zIndex: 1,
+            pointerEvents: 'none'
           }}
         >
-          <DragIndicator type='image' />          
-          <DragIndicator type='mask' />
+          <DragIndicator 
+            type='image' 
+            onDrop={ onDrop } 
+          />          
+          { !show && 
+            <DragIndicator 
+              type='mask'
+              onDrop={ onDrop } 
+            /> 
+          }
         </div>
       }
     </div>
