@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { OptionsContext } from 'contexts';
-import { maskToImage, scaleImageData, borderPixels } from 'utils/imageUtils';
+import { maskToImage, borderPoints } from 'utils/imageUtils';
+import { getLabelColorHex } from 'utils/colors';
 
 const pairs = a => a.reduce((pairs, item, i) => {
   if (i % 2 === 0) {
@@ -13,26 +14,28 @@ const pairs = a => a.reduce((pairs, item, i) => {
 }, []);
 
 export const SamDisplay = ({ 
-  image, mask, label, points, imageWidth, imageHeight, displayWidth, displayHeight, labelColor 
+  image, mask, label, points, imageWidth, imageHeight, displayWidth, displayHeight 
 }) => {
   const [{ interpolate, showBorder, maskOpacity }] = useContext(OptionsContext);
 
   const imageToDisplayX = x => x / imageWidth * displayWidth;
   const imageToDisplayY = y => y / imageHeight * displayHeight;
 
-  let maskImage = null;
-   
-  if (mask) {
-    const imageScale = showBorder ? 4 : 1;
-    const maskPixels = showBorder ? 
-      borderPixels(scaleImageData(mask, imageWidth, imageHeight, imageScale), imageWidth * imageScale, imageHeight * imageScale) :
-      mask;
+  const labelColor = getLabelColorHex(label);
 
-    maskImage = maskToImage(maskPixels, imageWidth * imageScale, imageHeight * imageScale, label);
-  }
+  let maskImage = mask && !showBorder ? maskToImage(mask, imageWidth, imageHeight, label) : null;
+  let border = mask && showBorder ? borderPoints(mask, imageWidth, imageHeight).map(({ p1, p2, label }) => (
+    {
+      p1: { x: imageToDisplayX(p1.x), y: imageToDisplayY(p1.y) },
+      p2: { x: imageToDisplayX(p2.x), y: imageToDisplayY(p2.y) },
+      label
+    }
+  )) : null;
 
   const boxes = points ? pairs(points.filter(({ clickType }) => clickType === 2 || clickType === 3)) : [];
   const justPoints = points ? points.filter(({ clickType }) => clickType === 0 || clickType === 1) : [];
+
+  const aspectRatio = `${ imageWidth } / ${ imageHeight }`;
 
   return (
     <>
@@ -40,7 +43,7 @@ export const SamDisplay = ({
         <img 
           style={{ 
             width: '100%', 
-            aspectRatio: '1 / 1', 
+            aspectRatio: aspectRatio, 
             pointerEvents: 'none',
             imageRendering: interpolate ? null : 'pixelated'
           }} 
@@ -48,11 +51,11 @@ export const SamDisplay = ({
           alt='original' 
         /> 
       }
-      { maskImage && 
+      { maskImage &&
         <img 
           style={{ 
             width: '100%', 
-            aspectRatio: '1 / 1', 
+            aspectRatio: aspectRatio, 
             position: 'absolute', 
             top: 0, 
             left: 0, 
@@ -62,6 +65,35 @@ export const SamDisplay = ({
           src={ maskImage.src } 
           alt='mask' 
         /> 
+      }
+      { border && 
+        <div 
+          style={{ 
+            width: '100%', 
+            aspectRatio: aspectRatio, 
+            position: 'absolute',
+            top: 0, 
+            left: 0, 
+            pointerEvents: 'none',
+            opacity: maskOpacity
+          }}
+        >
+          <svg
+            style={{ 
+              width: '100%', 
+              height: '100%'
+            }}
+          >
+            { border.map(({ p1, p2, label: borderLabel }, i) =>  
+              <line 
+                key={ i }
+                x1={ p1.x } y1={ p1.y } x2={ p2.x } y2={ p2.y } 
+                stroke={ getLabelColorHex(borderLabel) }
+                strokeWidth={ borderLabel === label ? 2 : 1 }
+              /> 
+            )}
+          </svg>
+        </div>
       }
       { boxes && boxes.map((box, i) => (
         <div
