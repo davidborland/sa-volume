@@ -333,7 +333,6 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
             imageHeight={ imageHeight }
             displayWidth={ displayWidth }
             displayHeight={ displayHeight }
-            labelColor={ getLabelColorHex(label) }
           />
         </div>   
       </DragWrapper>

@@ -137,7 +137,7 @@ export const borderPixels = (mask, imageWidth, imageHeight) => {
       const index = i * imageWidth + j;
       const label = mask[index];
 
-      if (mask[index] === 0) continue;
+      if (label === 0) continue;
 
       let isBorder = false;
 
@@ -157,6 +157,55 @@ export const borderPixels = (mask, imageWidth, imageHeight) => {
   }
 
   return border;
+};
+
+export const borderPoints = (mask, imageWidth, imageHeight) => {
+  const points = [];
+
+  const offsets = [
+    { dx: -1, dy:  0},
+    { dx:  1, dy:  0},
+    { dx:  0, dy: -1},
+    { dx:  0, dy:  1 }
+  ];
+
+  for (let i = 0; i < imageHeight; i++) {
+    for (let j = 0; j < imageWidth; j++) {      
+      const index = i * imageWidth + j;
+      const label = mask[index];
+
+      if (label === 0) continue;
+
+      offsets.forEach(({ dx, dy }) => {
+        const x = clamp(j + dx, 0, imageWidth - 1);
+        const y = clamp(i + dy, 0, imageHeight - 1);
+
+        if (mask[y * imageWidth + x] !== label) {
+          const px = j + 0.5 + dx * 0.5;
+          const py = i + 0.5 + dy * 0.5;
+
+          let p1x, p1y, p2x, p2y;
+
+          if (dx === 0) {
+            p1x = px - 0.5;
+            p1y = py;
+            p2x = px + 0.5;
+            p2y = py;
+          }
+          else {
+            p1x = px;
+            p1y = py - 0.5;
+            p2x = px;
+            p2y = py + 0.5;
+          }
+
+          points.push({ p1: { x: p1x, y: p1y }, p2: { x: p2x, y: p2y }, label });
+        }
+      });
+    }
+  }
+
+  return points;
 };
 
 // Load a file to a buffer
