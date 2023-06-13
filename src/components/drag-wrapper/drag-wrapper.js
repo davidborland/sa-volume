@@ -1,8 +1,16 @@
-import { useState } from 'react';
-import { DragIndicator } from 'components/drag-wrapper';
+import { useContext, useState } from 'react';
+import { 
+  DataContext, DATA_SET_IMAGES, DATA_SET_MASKS,
+  ErrorContext, ERROR_SET_MESSAGE
+} from 'contexts';
+import { DragTarget, LoadingIndicator } from 'components/drag-wrapper';
+import { getEmbeddings, loadTiff } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
+  const [, dataDispatch] = useContext(DataContext);
+  const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState(null);
 
   const onDragEnter = evt => {
     evt.preventDefault();
@@ -22,7 +30,46 @@ export const DragWrapper = ({ show, children }) => {
     }
   };
 
-  const onDrop = () => {
+  const onDrop = async (evt, type) => {
+    evt.preventDefault();
+
+    const file = evt.dataTransfer.files[0];
+
+    if (file.type === 'image/tiff') {
+      setFileName(file.name);
+
+      if (type === 'mask') {
+        const masks = await loadTiff(file, true);
+
+        dataDispatch({ 
+          type: DATA_SET_MASKS, 
+          maskName: file.name, 
+          masks: masks
+        });
+      }
+      else {
+        const images = await loadTiff(file);
+        const embeddings = await getEmbeddings(images);
+
+        dataDispatch({ 
+          type: DATA_SET_IMAGES, 
+          imageName: file.name, 
+          images: images, 
+          embeddings: embeddings 
+        });
+      }
+    }
+    else {
+      errorDispatch({ 
+        type: ERROR_SET_MESSAGE, 
+        heading: `Wrong file type: ${ file.type }`,
+        message: 'Please upload a single multi-page TIFF file (image/tiff)' 
+      });
+    }
+
+    setDragging(false);
+    setFileName(null);
+
     setDragging(false);
   };
 
@@ -55,15 +102,21 @@ export const DragWrapper = ({ show, children }) => {
             pointerEvents: 'none'
           }}
         >
-          <DragIndicator 
-            type='image' 
-            onDrop={ onDrop } 
-          />          
-          { !show && 
-            <DragIndicator 
-              type='mask'
-              onDrop={ onDrop } 
-            /> 
+          { fileName ?
+            <LoadingIndicator fileName={ fileName } />
+          :
+            <>
+              <DragTarget 
+                type='image' 
+                onDrop={ onDrop } 
+              />          
+              { !show && 
+                <DragTarget 
+                  type='mask'
+                  onDrop={ onDrop } 
+                /> 
+              }
+            </>
           }
         </div>
       }
