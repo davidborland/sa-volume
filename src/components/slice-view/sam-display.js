@@ -84,14 +84,17 @@ export const SamDisplay = ({
               height: '100%'
             }}
           >
-            { border.map(({ p1, p2, label: borderLabel }, i) =>  
-              <line 
-                key={ i }
-                x1={ p1.x } y1={ p1.y } x2={ p2.x } y2={ p2.y } 
-                stroke={ getLabelColorHex(borderLabel) }
-                strokeWidth={ borderLabel === label ? 2 : 1 }
-              /> 
-            )}
+            { border
+                .sort((a, b) => a.label === label ? 1 : b.label === label ? -1 : a.label - b.label)
+                .map(({ p1, p2, label: borderLabel }, i) =>  
+                  <line 
+                    key={ i }
+                    x1={ p1.x } y1={ p1.y } x2={ p2.x } y2={ p2.y } 
+                    stroke={ getLabelColorHex(borderLabel) }
+                    strokeWidth={ borderLabel === label ? 2 : 1 }
+                  /> 
+                )
+            }
           </svg>
         </div>
       }
