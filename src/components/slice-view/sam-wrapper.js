@@ -335,6 +335,7 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
           />
         </div>   
       </DragWrapper>
+      { imageName && <div className='small text-muted'>{ imageName }</div> }
     </>
   );
 };
