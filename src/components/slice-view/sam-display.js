@@ -22,7 +22,7 @@ export const SamDisplay = ({
   const imageToDisplayY = y => y / imageHeight * displayHeight;
 
   const labelColor = getLabelColorHex(label);
-
+  
   let maskImage = mask && visualizationType === 'masks' ? maskToImage(mask, imageWidth, imageHeight, label) : null;
   let border = mask && visualizationType === 'borders' ? borderPoints(mask, imageWidth, imageHeight).map(({ p1, p2, label }) => (
     {
