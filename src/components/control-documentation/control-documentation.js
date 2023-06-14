@@ -1,12 +1,29 @@
-import { Card } from 'react-bootstrap';
+import { useState } from 'react';
+import { Modal, Button } from 'react-bootstrap';
+import { QuestionCircle } from 'react-bootstrap-icons';
 
-const { Body } = Card;
+const { Body } = Modal;
 
 export const ControlDocumentation = () => {
+  const [showModal, setShowModal] = useState(false);
   const classes = 'small text-muted';
 
+  const onShow = () => setShowModal(true);
+  const onHide = () => setShowModal(false);
+
   return (
-    <Card>
+    <>
+    <Button 
+        variant='outline-secondary' 
+        style={{ border: 'none' }} 
+        onClick={ onShow }
+  >
+    <QuestionCircle />
+  </Button>
+  <Modal 
+        show={ showModal } 
+        onHide={ onHide }
+      >
       <Body>
         Left-click and drag
         <ul className={ classes }>
@@ -37,6 +54,7 @@ export const ControlDocumentation = () => {
           <li>Cancel current segmentation</li>
         </ul>
       </Body>
-    </Card>
+    </Modal>
+    </>
   );
 };

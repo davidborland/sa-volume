@@ -13,10 +13,10 @@ export const Options = () => {
     interpolate, visualizationType, visualizationOpacity, threshold }, 
     optionsDispatch
   ] = useContext(OptionsContext);
-  const [showModal, setShow] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  const onShow = () => setShow(true);
-  const onHide = () => setShow(false);
+  const onShow = () => setShowModal(true);
+  const onHide = () => setShowModal(false);
 
   const onInterpolateChange = checked => {
     optionsDispatch({ type: OPTIONS_SET_INTERPOLATE, interpolate: checked });

@@ -1,7 +1,7 @@
 import { SliceMarker, LabelDisplay } from 'components/slice-view';
 import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
-import { ControlDocumentationButton } from 'components/control-documentation';
+import { ControlDocumentation } from 'components/control-documentation';
 
 export const SliceHeader = ({ numImages, slice, label, onSave }) => {
   return (    
@@ -24,7 +24,7 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
       <div>
         <SaveButton onSave={ onSave } />
         <Options />
-        <ControlDocumentationButton />
+        <ControlDocumentation />
       </div>
     </div>
   );
