@@ -4,6 +4,8 @@ import { Options } from 'components/options';
 import { ControlDocumentation } from 'components/control-documentation';
 
 export const SliceHeader = ({ numImages, slice, label, onSave }) => {
+  const noData = numImages === 0;
+
   return (    
     <div
       style={{
@@ -12,17 +14,20 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
         justifyContent: 'space-between'
       }}
     >
-      <div>
+      <div style={{ visibility: noData ? 'hidden' : null }}>
         <SliceMarker 
           numImages={ numImages } 
           slice={ slice } 
         />
       </div>
-      <div>
+      <div style={{ visibility: noData ? 'hidden' : null }}>
         <LabelDisplay label={ label } />
       </div>
       <div>
-        <SaveButton onSave={ onSave } />
+        <SaveButton 
+          disabled={ noData} 
+          onSave={ onSave } 
+        />
         <Options />
         <ControlDocumentation />
       </div>

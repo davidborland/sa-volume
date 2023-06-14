@@ -1,12 +1,13 @@
 import { Button } from 'react-bootstrap';
 import { Download } from 'react-bootstrap-icons';
 
-export const SaveButton = ({ onSave }) => {
+export const SaveButton = ({ disabled, onSave }) => {
   return (
     <Button 
       variant='outline-secondary'  
-      onClick={ onSave }
       style={{ border: 'none' }}
+      disabled={ disabled }
+      onClick={ onSave }
     >
       <Download />
     </Button>
