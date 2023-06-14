@@ -7,7 +7,6 @@ import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, getLabel, deleteLabel, saveTIFF, getMaskName 
 } from 'utils/imageUtils';
-import { getLabelColorHex } from 'utils/colors';
 
 const getRelativePosition = (evt, div) => {
   const rect = div.getBoundingClientRect();
@@ -295,7 +294,7 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
     setPoints();   
     setTempPoints();
 
-    saveTIFF(masks, imageWidth, imageHeight, getMaskName(imageName));
+    saveTIFF(savedMasks.current, imageWidth, imageHeight, getMaskName(imageName));
   };
 
   return (

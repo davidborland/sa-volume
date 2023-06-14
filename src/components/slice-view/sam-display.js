@@ -16,15 +16,15 @@ const pairs = a => a.reduce((pairs, item, i) => {
 export const SamDisplay = ({ 
   image, mask, label, points, imageWidth, imageHeight, displayWidth, displayHeight 
 }) => {
-  const [{ interpolate, showBorder, maskOpacity }] = useContext(OptionsContext);
+  const [{ interpolate, visualizationType, visualizationOpacity }] = useContext(OptionsContext);
 
   const imageToDisplayX = x => x / imageWidth * displayWidth;
   const imageToDisplayY = y => y / imageHeight * displayHeight;
 
   const labelColor = getLabelColorHex(label);
-
-  let maskImage = mask && !showBorder ? maskToImage(mask, imageWidth, imageHeight, label) : null;
-  let border = mask && showBorder ? borderPoints(mask, imageWidth, imageHeight).map(({ p1, p2, label }) => (
+  
+  let maskImage = mask && visualizationType === 'masks' ? maskToImage(mask, imageWidth, imageHeight, label) : null;
+  let border = mask && visualizationType === 'borders' ? borderPoints(mask, imageWidth, imageHeight).map(({ p1, p2, label }) => (
     {
       p1: { x: imageToDisplayX(p1.x), y: imageToDisplayY(p1.y) },
       p2: { x: imageToDisplayX(p2.x), y: imageToDisplayY(p2.y) },
@@ -60,7 +60,7 @@ export const SamDisplay = ({
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: maskOpacity
+            opacity: visualizationOpacity
           }} 
           src={ maskImage.src } 
           alt='mask' 
@@ -75,7 +75,7 @@ export const SamDisplay = ({
             top: 0, 
             left: 0, 
             pointerEvents: 'none',
-            opacity: maskOpacity
+            opacity: visualizationOpacity
           }}
         >
           <svg

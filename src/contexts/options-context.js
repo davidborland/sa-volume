@@ -1,14 +1,14 @@
 import { createContext, useReducer } from 'react';
 
 export const OPTIONS_SET_INTERPOLATE = 'options/SET_INTERPOLATE';
-export const OPTIONS_SET_SHOW_BORDER = 'options/SET_SHOW_BORDER';
-export const OPTIONS_SET_MASK_OPACITY = 'options/SET_MASK_OPACITY';
+export const OPTIONS_SET_VISUALIZATION_TYPE = 'options/SET_VISUALIZATION_TYPE';
+export const OPTIONS_SET_VISUALIZATION_OPACITY = 'options/SET_VISUALIZATION_OPACITY';
 export const OPTIONS_SET_THRESHOLD = 'options/SET_THRESHOLD';
 
 const initialState = {
   interpolate: true,
-  showBorder: true,
-  maskOpacity: 0.8,
+  visualizationType: 'borders',
+  visualizationOpacity: 0.8,
   threshold: 0.5
 };
 
@@ -20,16 +20,16 @@ const reducer = (state, action) => {
         interpolate: action.interpolate
       };
 
-    case OPTIONS_SET_SHOW_BORDER:
+    case OPTIONS_SET_VISUALIZATION_TYPE:
       return {
         ...state,
-        showBorder: action.showBorder
+        visualizationType: action.visualizationType
       };
 
-    case OPTIONS_SET_MASK_OPACITY:
+    case OPTIONS_SET_VISUALIZATION_OPACITY:
       return {
         ...state,
-        maskOpacity: action.maskOpacity
+        visualizationOpacity: action.visualizationOpacity
       };
 
     case OPTIONS_SET_THRESHOLD:

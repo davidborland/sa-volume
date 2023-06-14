@@ -169,6 +169,8 @@ export const borderPoints = (mask, imageWidth, imageHeight) => {
     { dx:  0, dy:  1 }
   ];
 
+  const radius = 0.5;
+
   for (let i = 0; i < imageHeight; i++) {
     for (let j = 0; j < imageWidth; j++) {      
       const index = i * imageWidth + j;
@@ -181,22 +183,22 @@ export const borderPoints = (mask, imageWidth, imageHeight) => {
         const y = clamp(i + dy, 0, imageHeight - 1);
 
         if (mask[y * imageWidth + x] !== label) {
-          const px = j + 0.5 + dx * 0.5;
-          const py = i + 0.5 + dy * 0.5;
+          const px = j + radius + dx * radius;
+          const py = i + radius + dy * radius;
 
           let p1x, p1y, p2x, p2y;
 
           if (dx === 0) {
-            p1x = px - 0.5;
+            p1x = px - radius;
             p1y = py;
-            p2x = px + 0.5;
+            p2x = px + radius;
             p2y = py;
           }
           else {
             p1x = px;
-            p1y = py - 0.5;
+            p1y = py - radius;
             p2x = px;
-            p2y = py + 0.5;
+            p2y = py + radius;
           }
 
           points.push({ p1: { x: p1x, y: p1y }, p2: { x: p2x, y: p2y }, label });
@@ -327,5 +329,5 @@ export const getMaskName = imageName => {
   
   if (i < 0) i = imageName.length;
 
-  return imageName.slice(0, i - 1) + '_mask' + imageName.slice(i);
+  return imageName.slice(0, i) + '_mask' + imageName.slice(i);
 };

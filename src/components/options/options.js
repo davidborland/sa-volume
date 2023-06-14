@@ -1,8 +1,8 @@
 import { useContext, useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { Gear } from 'react-bootstrap-icons';
 import { 
-  OptionsContext, OPTIONS_SET_INTERPOLATE, OPTIONS_SET_MASK_OPACITY, OPTIONS_SET_SHOW_BORDER, OPTIONS_SET_THRESHOLD
+  OptionsContext, OPTIONS_SET_INTERPOLATE, OPTIONS_SET_VISUALIZATION_OPACITY, OPTIONS_SET_VISUALIZATION_TYPE, OPTIONS_SET_THRESHOLD
 } from 'contexts';
 import { Checkbox, Slider } from 'components/widgets';
 
@@ -10,7 +10,7 @@ const { Body } = Modal;
 
 export const Options = () => {
   const [{ 
-    interpolate, showBorder, maskOpacity, threshold }, 
+    interpolate, visualizationType, visualizationOpacity, threshold }, 
     optionsDispatch
   ] = useContext(OptionsContext);
   const [showModal, setShow] = useState(false);
@@ -22,12 +22,12 @@ export const Options = () => {
     optionsDispatch({ type: OPTIONS_SET_INTERPOLATE, interpolate: checked });
   };
 
-  const onShowBorderChange = checked => {
-    optionsDispatch({ type: OPTIONS_SET_SHOW_BORDER, showBorder: checked });
+  const onVisualizationTypeChange = value => {
+    optionsDispatch({ type: OPTIONS_SET_VISUALIZATION_TYPE, visualizationType: value });
   };
 
-  const onMaskOpacityChange = value => {
-    optionsDispatch({ type: OPTIONS_SET_MASK_OPACITY, maskOpacity: value });
+  const onVisualizationOpacityChange = value => {
+    optionsDispatch({ type: OPTIONS_SET_VISUALIZATION_OPACITY, visualizationOpacity: value });
   };
 
   const onThresholdChange = value => {
@@ -60,26 +60,50 @@ export const Options = () => {
               checked={ interpolate }
               onChange={ onInterpolateChange }
             />
-            <Checkbox 
-              label='Show borders'
-              //description='Show regions borders.'
-              checked={ showBorder }
-              onChange={ onShowBorderChange }
-            />
+            <div 
+              style={{ 
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10             
+              }}>
+              <div>Visualization</div>
+              <ToggleButtonGroup 
+                type='radio'
+                name='visualizationType'
+                size="sm"
+                value={ visualizationType }
+                onChange={ onVisualizationTypeChange }
+              >
+                <ToggleButton 
+                  id='toggle-borders'
+                  variant='outline-secondary'
+                  value='borders'
+                >
+                  Border
+                </ToggleButton>
+                <ToggleButton
+                  id='toggle-masks'
+                  variant='outline-secondary'
+                  value='masks'
+                >
+                  Mask
+                </ToggleButton>            
+              </ToggleButtonGroup>
+            </div>
             <Slider 
-              label='Mask opacity'
+              label='Visualization opacity'
               //description='Opacity of mask image.'
-              value={ maskOpacity }
+              value={ visualizationOpacity }
               defaultValue={ 0.8 }
               min={ 0 }
               max={ 100 }
               outputMin={ 0 }
               outputMax={ 1 }        
-              onChange={ onMaskOpacityChange }
+              onChange={ onVisualizationOpacityChange }
             /> 
             <Slider 
               label='Threshold'
-              description='Threshold for converting probabilities to binary mask. Usually best to leave at the default value.'
+              description='Threshold for converting segment anything probabilities to binary mask. Usually best to leave at the default value.'
               value={ threshold }
               defaultValue={ 0.5 }
               min={ 0 }
