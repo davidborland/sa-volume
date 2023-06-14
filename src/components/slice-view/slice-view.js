@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { Row, Col } from 'react-bootstrap';
-import { DataContext } from 'contexts';
+import { DataContext, ControlsContext } from 'contexts';
 import { NiftiWrapper, SamWrapper } from 'components/slice-view';
 import { ControlDocumentation } from 'components/control-documentation';
 
@@ -8,6 +8,7 @@ import { ControlDocumentation } from 'components/control-documentation';
 
 export const SliceView = () => {  
   const [{ imageName, images, embeddings, masks }] = useContext(DataContext);
+  const [{ show: showControlDocumentation }] = useContext(ControlsContext);
 
   //const wrapper = <NiftiWrapper url={ niftiUrl } />;
   const wrapper = <SamWrapper 
@@ -24,9 +25,11 @@ export const SliceView = () => {
           { wrapper }
         </div>
       </Col>
-      <Col md={ 4 } className='mt-2'>
-        <ControlDocumentation />
-      </Col>
+      { showControlDocumentation &&
+        <Col md={ 4 }>
+          <ControlDocumentation />
+        </Col>
+      }
     </Row>
   );
 };

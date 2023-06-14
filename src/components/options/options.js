@@ -37,9 +37,9 @@ export const Options = () => {
   return (
     <>
       <Button 
-        variant='outline-secondary'  
+        variant='outline-secondary' 
+        style={{ border: 'none' }} 
         onClick={ onShow }
-        style={{ border: 'none' }}
       >
         <Gear />
       </Button>

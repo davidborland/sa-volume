@@ -23,7 +23,7 @@ const reducer = (state, action) => {
       };
 
     default: 
-      throw new Error('Invalid Error context action: ' + action.type);
+      throw new Error('Invalid error context action: ' + action.type);
   }
 }
 
