@@ -1,4 +1,3 @@
-import { Row, Col } from 'react-bootstrap';
 import { SliceMarker, LabelDisplay } from 'components/slice-view';
 import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
