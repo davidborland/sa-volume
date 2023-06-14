@@ -1,3 +1,4 @@
+import { Row, Col } from 'react-bootstrap';
 import { SliceMarker, LabelDisplay } from 'components/slice-view';
 import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
@@ -11,7 +12,9 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
       style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        flexWrap: 'wrap-reverse',
+        gap: 10
       }}
     >
       <div style={{ visibility: noData ? 'hidden' : null }}>
