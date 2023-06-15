@@ -16,7 +16,8 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
         gap: 10
       }}
     >
-      <div style={{ visibility: noData ? 'hidden' : null }}>
+      <div 
+        style={{ visibility: noData ? 'hidden' : null }}>
         <SliceMarker 
           numImages={ numImages } 
           slice={ slice } 
@@ -25,12 +26,17 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
       <div style={{ visibility: noData ? 'hidden' : null }}>
         <LabelDisplay label={ label } />
       </div>
-      <div>
+      <div 
+        style={{ 
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >
         <SaveButton 
           disabled={ noData} 
           onSave={ onSave } 
         />
-        <Options />
+        <Options disabled={ noData} />
         <ControlDocumentation />
       </div>
     </div>

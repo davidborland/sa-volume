@@ -8,7 +8,7 @@ import { Checkbox, Slider } from 'components/widgets';
 
 const { Body } = Modal;
 
-export const Options = () => {
+export const Options = ({ disabled }) => {
   const [{ 
     interpolate, visualizationType, visualizationOpacity, threshold }, 
     optionsDispatch
@@ -39,6 +39,7 @@ export const Options = () => {
       <Button 
         variant='outline-secondary' 
         style={{ border: 'none' }} 
+        disabled={ disabled }
         onClick={ onShow }
       >
         <Gear />
