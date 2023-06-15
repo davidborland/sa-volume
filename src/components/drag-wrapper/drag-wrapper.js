@@ -49,9 +49,9 @@ export const DragWrapper = ({ show, children }) => {
       if (type === 'mask') {
         const { masks, width, height } = await loadTIFFMask(file);
 
-        // Check for image data
         const image = images && images.length > 0 ? images[0] : null;
 
+        // Check for image data
         if (!image) {
           throw new LoadingError(
             'No image loaded',
