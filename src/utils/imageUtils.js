@@ -51,7 +51,7 @@ const intensityToImageData = (input, width, height) => {
     array[4 * i + 3] = 255;
   }
 
-  return new ImageData(array, height, width);
+  return new ImageData(array, width, height);
 };
 
 // Use a Canvas element to produce an image from ImageData

@@ -8,19 +8,7 @@ export const decodeTiff = buffer => {
   if (ifds.length === 0) return null;
 
   const { width, height } = ifds[0];
-
-  const data = [];
-  ifds.forEach((ifd, z) => {
-    const slice = [];
-    data.push(slice);
-    for (let x = 0; x < width; x++) {
-      for (let y = 0; y < height; y++) {
-        const v = ifd.data[x * height + y];
-
-        slice[x * height + y] = v;
-      }
-    }
-  });
+  const data = ifds.map(({ data }) => [...data]);
 
   return { data, width, height };
 };
