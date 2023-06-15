@@ -21,6 +21,8 @@ export const DragTarget = ({ type, onDrop }) => {
   };
 
   const handleDrop = evt => {
+    setDragging(false);
+
     onDrop(evt, type);
   };
 

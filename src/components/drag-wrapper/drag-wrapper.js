@@ -62,15 +62,13 @@ export const DragWrapper = ({ show, children }) => {
     else {
       errorDispatch({ 
         type: ERROR_SET_MESSAGE, 
-        heading: `Wrong file type: ${ file.type }`,
+        heading: `Wrong file type: ${ file.type ? file.type : 'unknown' }`,
         message: 'Please upload a single multi-page TIFF file (image/tiff)' 
       });
     }
 
     setDragging(false);
     setFileName(null);
-
-    setDragging(false);
   };
 
   return (
