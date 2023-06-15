@@ -2,7 +2,7 @@ import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 import { rescale } from 'utils/math';
-import { decodeTiff, encodeTiff } from 'utils/tiffUtils';
+import { decodeTiff, encodeTIFF } from 'utils/tiffUtils';
 const ort = require('onnxruntime-web');
 
 // Threshold the mask prediction values
@@ -282,14 +282,13 @@ const getEmbedding = async (image, index) => {
   return embedding;
 };
 
-// Load a Tiff image
-export const loadTiff = async (file, mask = false) => {
+// Load a TIFF image
+export const loadTIFF = async file => {
   try {
     const buffer = await loadFileToBuffer(file);
     const { data, width, height } = decodeTiff(buffer);
 
-    return mask ? data.map(slice => slice.flat()) :
-      data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
+    return data.map(slice => imageDataToImage(intensityToImageData(slice, width, height)));
   }
   catch (err) {
     console.log(err);
@@ -298,6 +297,22 @@ export const loadTiff = async (file, mask = false) => {
   } 
 };
 
+// Load a TIFF image as a mask
+export const loadTIFFMask = async file => {
+  try {
+    const buffer = await loadFileToBuffer(file);
+    const { data, width, height } = decodeTiff(buffer);
+
+    return { masks: data.map(slice => slice.flat()), width, height }; 
+  }
+  catch (err) {
+    console.log(err);
+    
+    return null;
+  } 
+};
+
+// Get embeddings for an image stack
 export const getEmbeddings = async images => {
   const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
 
@@ -306,7 +321,7 @@ export const getEmbeddings = async images => {
 
 // Save a TIFF image
 export const saveTIFF = async (masks, width, height, fileName) => {
-  const buffer = encodeTiff(masks, width, height);
+  const buffer = encodeTIFF(masks, width, height);
 
   const blob = new Blob([buffer], { type: 'image/tiff' });
 
@@ -324,6 +339,7 @@ export const saveTIFF = async (masks, width, height, fileName) => {
   a.remove();
 };
 
+// Get name for saving mask
 export const getMaskName = imageName => {
   let i = imageName.lastIndexOf('.');
   

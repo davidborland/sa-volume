@@ -1,13 +1,13 @@
 import { useContext, useState } from 'react';
 import { 
   DataContext, DATA_SET_IMAGES, DATA_SET_MASKS,
-  ErrorContext, ERROR_SET_MESSAGE
+  ErrorContext, LoadingError, ERROR_SET_MESSAGE
 } from 'contexts';
 import { DragTarget, LoadingIndicator } from 'components/drag-wrapper';
-import { getEmbeddings, loadTiff } from 'utils/imageUtils';
+import { loadTIFF, getEmbeddings, loadTIFFMask } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
-  const [, dataDispatch] = useContext(DataContext);
+  const [{ images }, dataDispatch] = useContext(DataContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState(null);
@@ -35,11 +35,37 @@ export const DragWrapper = ({ show, children }) => {
 
     const file = evt.dataTransfer.files[0];
 
-    if (file.type === 'image/tiff') {
+    try {
+      // Check file type
+      if (file.type !== 'image/tiff') {
+        throw new LoadingError(
+          `Wrong file type: ${ file.type ? file.type : 'unknown' }`,
+          'Please upload a single multi-page TIFF file (image/tiff)'
+        );
+      }
+
       setFileName(file.name);
 
       if (type === 'mask') {
-        const masks = await loadTiff(file, true);
+        const { masks, width, height } = await loadTIFFMask(file);
+
+        // Check for image data
+        const image = images && images.length > 0 ? images[0] : null;
+
+        if (!image) {
+          throw new LoadingError(
+            'No image loaded',
+            'Please upload an image' 
+          );
+        }
+
+        // Check for dimension mismatch
+        if (masks.length !== images.length || width !== image.width || height !== image.height) {
+          throw new LoadingError(
+            'Dimension mismatch',
+            `Mask dimensions (${ width }x${ height }x${ masks.length}) do not match image dimensions (${ image.width }x${ image.height }x${ images.length })`
+          );
+        }
 
         dataDispatch({ 
           type: DATA_SET_MASKS, 
@@ -48,7 +74,7 @@ export const DragWrapper = ({ show, children }) => {
         });
       }
       else {
-        const images = await loadTiff(file);
+        const images = await loadTIFF(file);
         const embeddings = await getEmbeddings(images);
 
         dataDispatch({ 
@@ -59,11 +85,11 @@ export const DragWrapper = ({ show, children }) => {
         });
       }
     }
-    else {
-      errorDispatch({ 
-        type: ERROR_SET_MESSAGE, 
-        heading: `Wrong file type: ${ file.type ? file.type : 'unknown' }`,
-        message: 'Please upload a single multi-page TIFF file (image/tiff)' 
+    catch (error) {
+      errorDispatch({
+        type: ERROR_SET_MESSAGE,
+        heading: error.heading,
+        message: error.message
       });
     }
 
@@ -106,11 +132,13 @@ export const DragWrapper = ({ show, children }) => {
             <>
               <DragTarget 
                 type='image' 
+                text={ show ? 'Drag and drop image' : 'Load new image' }              
                 onDrop={ onDrop } 
               />          
               { !show && 
                 <DragTarget 
                   type='mask'
+                  text='Load mask for current image'
                   onDrop={ onDrop } 
                 /> 
               }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Upload } from 'react-bootstrap-icons';
 
-export const DragTarget = ({ type, onDrop }) => {
+export const DragTarget = ({ type, text, onDrop }) => {
   const [dragging, setDragging] = useState(false);
 
   const onDragEnter = evt => {
@@ -51,11 +51,7 @@ export const DragTarget = ({ type, onDrop }) => {
       onDrop={ handleDrop }
     >
       <div style={{ pointerEvents: 'none' }}>
-        { type === 'mask' ?
-          <>Load mask for current image</>
-        :
-          <>Load new image</>
-        }
+        <div>{ text }</div>
         <Upload className='mt-1' size={ 48 } />
       </div>
     </div>

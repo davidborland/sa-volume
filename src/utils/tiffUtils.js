@@ -30,10 +30,7 @@ utif.ttypes[254] = 4;
 utif.ttypes[297] = 5;
 
 // Based on encodeImage from utif, but adjusted for multipage single component images with different bits
-export const encodeTiff = (images, w, h, bpp = 16) => {
-
-  console.log(images);
-
+export const encodeTIFF = (images, w, h, bpp = 16) => {
   const n = images.length;
   const buffer = images.flat();
   const bytes = bpp / 8;
