@@ -102,7 +102,7 @@ export const DragWrapper = ({ show, children }) => {
       style={{
         position: 'relative',
         width: '100%',
-        aspectRatio: '1 / 1',
+        aspectRatio: show ? '1 / 1' : null,
       }}
       onDragEnter={ onDragEnter }
       onDragOver={ onDragOver }
