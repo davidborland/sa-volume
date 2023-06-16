@@ -12,7 +12,22 @@ export const thresholdOnnxMask = (input, threshold) => {
   const extreme = Math.max(maxValue, Math.abs(minValue));
   const t = -extreme + threshold * 2 * extreme;
 
-  return input.map(v => v > t);
+  // XXX: TEST SUBVOLUME
+  const x = 39;
+  const y = 24;
+  const w = 64;
+  const h = 46;
+  const fullW = 128;
+  const data = new Float32Array(w * h);
+  for (let j = 0; j < h; j++) {
+    for (let i = 0; i < w; i++) {
+      data[j * w + i] = input[(j + y) * fullW + i + x];
+    }
+  }
+
+  return data.map(v => v > t);
+
+  //return input.map(v => v > t);
 }
 
 // Convert the onnx model mask to ImageData

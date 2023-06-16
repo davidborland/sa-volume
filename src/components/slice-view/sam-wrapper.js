@@ -54,7 +54,12 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
 
   // Compute mask using segment anything (sam)
   const combinedPoints = useMemo(() => combineArrays(points, tempPoints), [points, tempPoints]);
-  const mask = useSam(image, embedding, combinedPoints, threshold);
+
+  // XXX: TEST SUBVOLUME
+  const x = 39;
+  const y = 24;
+  const subPoints = useMemo(() => combinedPoints?.map(p => ({...p, x: p.x + x, y: p.y + y})), [combinedPoints]);
+  const mask = useSam(image, embedding, subPoints, threshold);
 
   // Get point coordinates from event
   const getPoint = useCallback(evt => {
