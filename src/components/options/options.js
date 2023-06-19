@@ -1,10 +1,10 @@
 import { useContext, useState } from 'react';
-import { Modal, Button, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
+import { Modal, Button, } from 'react-bootstrap';
 import { Gear } from 'react-bootstrap-icons';
 import { 
   OptionsContext, OPTIONS_SET_INTERPOLATE, OPTIONS_SET_VISUALIZATION_OPACITY, OPTIONS_SET_VISUALIZATION_TYPE, OPTIONS_SET_THRESHOLD
 } from 'contexts';
-import { Checkbox, Slider } from 'components/widgets';
+import { Checkbox, Slider, Toggle } from 'components/widgets';
 
 const { Body } = Modal;
 
@@ -61,36 +61,13 @@ export const Options = ({ disabled }) => {
               checked={ interpolate }
               onChange={ onInterpolateChange }
             />
-            <div 
-              style={{ 
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10             
-              }}>
-              <div>Visualization</div>
-              <ToggleButtonGroup 
-                type='radio'
-                name='visualizationType'
-                size="sm"
-                value={ visualizationType }
-                onChange={ onVisualizationTypeChange }
-              >
-                <ToggleButton 
-                  id='toggle-borders'
-                  variant='outline-secondary'
-                  value='borders'
-                >
-                  Border
-                </ToggleButton>
-                <ToggleButton
-                  id='toggle-masks'
-                  variant='outline-secondary'
-                  value='masks'
-                >
-                  Mask
-                </ToggleButton>            
-              </ToggleButtonGroup>
-            </div>
+            <Toggle 
+              label='Visualization'
+              //description='Segmentation region visualization type.'
+              value={ visualizationType }
+              values={ ['borders', 'masks'] }
+              onChange={ onVisualizationTypeChange }
+            />
             <Slider 
               label='Visualization opacity'
               //description='Opacity of mask image.'
