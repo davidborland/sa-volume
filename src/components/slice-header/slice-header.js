@@ -1,4 +1,5 @@
-import { SliceMarker, LabelDisplay } from 'components/slice-view';
+import { SliceMarker } from 'components/slice-marker';
+import { LabelDisplay } from 'components/label-display';
 import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
 import { ControlDocumentation } from 'components/control-documentation';

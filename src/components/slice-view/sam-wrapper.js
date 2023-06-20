@@ -1,7 +1,8 @@
 import { useContext, useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { OptionsContext } from 'contexts';
 import { useSam, useResize } from 'hooks';
-import { SamDisplay, SliceHeader } from 'components/slice-view';
+import { SamDisplay } from 'components/slice-view';
+import { SliceHeader } from 'components/slice-header';
 import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
 import { 
