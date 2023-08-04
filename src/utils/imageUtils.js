@@ -5,6 +5,8 @@ import { rescale } from 'utils/math';
 import { decodeTiff, encodeTIFF } from 'utils/tiffUtils';
 const ort = require('onnxruntime-web');
 
+const SAM_URL = 'https://sam.apps.renci.org';
+
 // Threshold the mask prediction values
 export const thresholdOnnxMask = (input, threshold) => {
   const maxValue = Math.max(...input);
@@ -272,12 +274,38 @@ const loadNpyTensor = async (tensorFile, dType) => {
 
 // Get image embedding from service
 const getEmbedding = async (image, index) => {
+/*  
   const imageInfo = image.name.includes(imageInfo1.baseName) ? imageInfo1 : imageInfo2;
 
   // XXX: Hack for now to simulate loading from service
   const name = imageInfo.embeddingNames[index % imageInfo.numImages];
 
   const embedding = await loadNpyTensor(name, 'float32');
+*/
+  console.log(image);
+
+  // XXX: Already have the array buffer when loading the data, so use that instead of converting back
+
+  const data = image.src.split(',')[1];
+  const blobData = atob(data);
+  const arrayBuffer = new Uint8Array(blobData.length);
+  for (let i = 0; i < blobData.length; i++) {
+      arrayBuffer[i] = blobData.charCodeAt(i);
+  }
+  const blob = new Blob([arrayBuffer], { type: 'image/png' }); // Change the MIME type as needed
+
+
+  const formData = new FormData();
+  formData.append('image', blob);
+
+  const response = await fetch(`${ SAM_URL }/image_slice_embedding`, { 
+    method: 'post',
+    body: formData 
+  });
+
+  console.log(response);
+
+  const embedding = null;
 
   return embedding;
 };

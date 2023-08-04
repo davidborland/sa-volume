@@ -74,8 +74,9 @@ export const DragWrapper = ({ show, children }) => {
         });
       }
       else {
-        const images = await loadTIFF(file);
-        const embeddings = await getEmbeddings(images);
+        const imageDataStack = await loadTIFF(file);
+        const images = await loadTIFF(imageDataStack);
+        const embeddings = await getEmbeddings(imageDataStack);
 
         dataDispatch({ 
           type: DATA_SET_IMAGES, 
