@@ -272,42 +272,60 @@ const loadNpyTensor = async (tensorFile, dType) => {
   return tensor;
 };
 
-// Get image embedding from service
-const getEmbedding = async (image, index) => {
-/*  
-  const imageInfo = image.name.includes(imageInfo1.baseName) ? imageInfo1 : imageInfo2;
+// Read a stream into an array
+const readStream = stream => {
+  const reader = stream.getReader();
+  const array = [];
 
-  // XXX: Hack for now to simulate loading from service
-  const name = imageInfo.embeddingNames[index % imageInfo.numImages];
+  const read = () => {
+    return reader.read().then(({ done, value }) => {
+      if (done) {
+        return array;
+      }
 
-  const embedding = await loadNpyTensor(name, 'float32');
-*/
-  console.log(image);
-
-  // XXX: Already have the array buffer when loading the data, so use that instead of converting back
-
-  const data = image.src.split(',')[1];
-  const blobData = atob(data);
-  const arrayBuffer = new Uint8Array(blobData.length);
-  for (let i = 0; i < blobData.length; i++) {
-      arrayBuffer[i] = blobData.charCodeAt(i);
+      array.push(value);
+      return read();
+    });
   }
-  const blob = new Blob([arrayBuffer], { type: 'image/png' }); // Change the MIME type as needed
+
+  return read();
+};
+
+// Get image embedding from service
+const getEmbedding = async image => {
+  try {
+    // XXX: Is there a more efficient way of getting the data in this format?
+    const data = image.src.split(',')[1];
+    const blobData = atob(data);
+    const arrayBuffer = new Uint8Array(blobData.length);
+    for (let i = 0; i < blobData.length; i++) {
+        arrayBuffer[i] = blobData.charCodeAt(i);
+    }
+
+    const blob = new Blob([arrayBuffer], { type: 'image/png' }); // Change the MIME type as needed
+
+    const formData = new FormData();
+    formData.append('image', blob);
+
+    const response = await fetch(`${ SAM_URL }/image_slice_embedding`, { 
+      method: 'post',
+      body: formData 
+    }); 
 
 
-  const formData = new FormData();
-  formData.append('image', blob);
+    // XXX: Can I just pass the url directly to the npLoader from npyjs?
 
-  const response = await fetch(`${ SAM_URL }/image_slice_embedding`, { 
-    method: 'post',
-    body: formData 
-  });
+    const embedding = await readStream(response.body);
 
-  console.log(response);
+    console.log(embedding);
 
-  const embedding = null;
+    return embedding;
+  }
+  catch (err) {
+    console.log(err);
 
-  return embedding;
+    return null;
+  }
 };
 
 // Load a TIFF image
