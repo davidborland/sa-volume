@@ -1,4 +1,3 @@
-import { LabelmapTypes } from '@cornerstonejs/tools/dist/esm/types';
 import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
@@ -226,7 +225,7 @@ const loadFileToBuffer = file =>
     reader.onerror = evt => {
       reject(evt.target.error);
     };
-    
+
     reader.readAsArrayBuffer(file);
   });
 
@@ -273,32 +272,8 @@ const loadNpyTensor = async (tensorFile, dType) => {
   return tensor;
 };
 
-const decodeBytes = (buffer) => {
-  const view = new DataView(buffer);
-  const n = buffer.length / 4;
-  const array = new Float32Array(n);
-
-  console.log(n)
-
-  for (let i = 0; i < n; i++) {
-    array[i] = view.getFloat32(i * 4);
-  }
-  console.log(array)
-
-  return array;
-};
-
 // Get image embedding from service
 const getEmbedding = async image => {
-
-/*
-  const name = imageInfo2.embeddingNames[0];
-  const e = await loadNpyTensor(name, 'float32');
-
-  console.log(e);
-*/
-
-
   try {
     // XXX: Is there a more efficient way of getting the data in this format?
     const data = image.src.split(',')[1];
@@ -318,13 +293,10 @@ const getEmbedding = async image => {
       body: formData 
     }); 
 
-
-    // XXX: Can I just pass the url directly to the npLoader from npyjs?
-
     const buffer = await response.arrayBuffer(); 
-    const tensor = new ort.Tensor('float32', new Float32Array(buffer), [1, 256, 64, 64]);
 
-    console.log(tensor);
+    // XXX: Hard-coded dtype and shape
+    const tensor = new ort.Tensor('float32', new Float32Array(buffer), [1, 256, 64, 64]);
 
     return tensor;
   }
