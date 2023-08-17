@@ -272,41 +272,6 @@ const loadNpyTensor = async (tensorFile, dType) => {
   return tensor;
 };
 
-// Get image embedding from service
-const getEmbedding = async image => {
-  try {
-    // XXX: Is there a more efficient way of getting the data in this format?
-    const data = image.src.split(',')[1];
-    const blobData = atob(data);
-    const arrayBuffer = new Uint8Array(blobData.length);
-    for (let i = 0; i < blobData.length; i++) {
-        arrayBuffer[i] = blobData.charCodeAt(i);
-    }
-
-    const blob = new Blob([arrayBuffer], { type: 'image/png' }); // Change the MIME type as needed
-
-    const formData = new FormData();
-    formData.append('image', blob);
-
-    const response = await fetch(`${ SAM_URL }/image_slice_embedding`, { 
-      method: 'post',
-      body: formData 
-    }); 
-
-    const buffer = await response.arrayBuffer(); 
-
-    // XXX: Hard-coded dtype and shape
-    const tensor = new ort.Tensor('float32', new Float32Array(buffer), [1, 256, 64, 64]);
-
-    return tensor;
-  }
-  catch (err) {
-    console.log(err);
-
-    return null;
-  }
-};
-
 // Load a TIFF image
 export const loadTIFF = async file => {
   try {
@@ -337,9 +302,45 @@ export const loadTIFFMask = async file => {
   } 
 };
 
+// Get image embedding from service
+export const getEmbedding = async image => {
+  try {
+    // XXX: Is there a more efficient way of getting the data in this format?
+    const data = image.src.split(',')[1];
+    const blobData = atob(data);
+    const arrayBuffer = new Uint8Array(blobData.length);
+    for (let i = 0; i < blobData.length; i++) {
+        arrayBuffer[i] = blobData.charCodeAt(i);
+    }
+
+    const blob = new Blob([arrayBuffer], { type: 'image/png' }); // Change the MIME type as needed
+
+    const formData = new FormData();
+    formData.append('image', blob);
+
+    const response = await fetch(`${ SAM_URL }/image_slice_embedding`, { 
+      method: 'post',
+      body: formData 
+    });
+
+    const dtype = response.headers.get('x-numpy-dtype');
+    const shape = JSON.parse(response.headers.get('x-numpy-shape'));
+    const buffer = await response.arrayBuffer(); 
+
+    const tensor = new ort.Tensor(dtype, new Float32Array(buffer), shape);
+
+    return tensor;
+  }
+  catch (err) {
+    console.log(err);
+
+    return null;
+  }
+};
+
 // Get embeddings for an image stack
 export const getEmbeddings = async images => {
-  const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image, i)));
+  const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image)));
 
   return embeddings;
 };
