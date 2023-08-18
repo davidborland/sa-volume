@@ -249,19 +249,7 @@ const addNames = imageInfo => {
     imageNames,
     embeddingNames
   };
-} 
-
-const imageInfo1 = addNames({
-  baseName: `${ process.env.PUBLIC_URL }/data/images/test_image/test_image_`,
-  numImages: 8,
-  imageSize: 48
-});
-
-const imageInfo2 = addNames({
-  baseName: `${ process.env.PUBLIC_URL }/data/images/purple_box/FKP4_L57D855P1_topro_purplebox_x200y1400z0530_`,
-  numImages: 8,
-  imageSize: 128
-});  
+}   
 
 // Decode a Numpy file into a tensor. 
 const loadNpyTensor = async (tensorFile, dType) => {
