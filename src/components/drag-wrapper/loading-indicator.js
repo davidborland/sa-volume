@@ -29,7 +29,7 @@ export const LoadingIndicator = ({ fileName, toLoad = null, loaded = null }) => 
               textAlign: 'center'
             }}
           >
-            SAM embeddings
+            Retrieving SAM embeddings: { loaded } / { toLoad }
           </div>
           <ProgressBar 
             className={ styles.bar }

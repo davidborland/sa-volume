@@ -92,24 +92,28 @@ export const DragWrapper = ({ show, children }) => {
         setLoaded(0);
 
         // Load embeddings and keep track of progress
-        const embeddings = [];
-        for (const image of images) {
-          getEmbedding(image).then(embedding => {
-            embeddings.push(embedding);
+        const embeddings = new Array(images.length);
+        let numLoaded = 0;
+        const handleEmbedding = (embedding, i) => {
+          embeddings[i] = embedding;
+            
+          numLoaded++;
+          setLoaded(numLoaded);
 
-            setLoaded(embeddings.length);
+          if (numLoaded === embeddings.length) {
+            dataDispatch({ 
+              type: DATA_SET_IMAGES, 
+              imageName: file.name, 
+              images: images, 
+              embeddings: embeddings 
+            });
 
-            if (embeddings.length === images.length) {
-              dataDispatch({ 
-                type: DATA_SET_IMAGES, 
-                imageName: file.name, 
-                images: images, 
-                embeddings: embeddings 
-              });
+            reset();
+          }
+        };
 
-              reset();
-            }
-          });
+        for (let i = 0; i < embeddings.length; i++) {          
+          getEmbedding(images[i]).then(embedding => handleEmbedding(embedding, i));
         }      
       }
     }

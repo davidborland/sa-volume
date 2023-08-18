@@ -1,4 +1,3 @@
-import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 import { rescale } from 'utils/math';
