@@ -88,9 +88,6 @@ export const DragWrapper = ({ show, children }) => {
       else {
         const images = await loadTIFF(file);
 
-        setToLoad(images.length);
-        setLoaded(0);
-
         // Load embeddings and keep track of progress
         const embeddings = new Array(images.length);
         let numLoaded = 0;
@@ -99,6 +96,11 @@ export const DragWrapper = ({ show, children }) => {
             
           numLoaded++;
           setLoaded(numLoaded);
+
+          if (numLoaded === 1) {
+            setToLoad(embeddings.length);
+            setLoaded(1);
+          }
 
           if (numLoaded === embeddings.length) {
             dataDispatch({ 
