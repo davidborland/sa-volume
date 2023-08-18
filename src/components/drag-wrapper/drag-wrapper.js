@@ -33,6 +33,13 @@ export const DragWrapper = ({ show, children }) => {
     }
   };
 
+  const reset = () => {
+    setDragging(false);
+    setFileName(null);
+    setToLoad(null);
+    setLoaded(null);
+  };
+
   const onDrop = async (evt, type) => {
     evt.preventDefault();
 
@@ -75,6 +82,8 @@ export const DragWrapper = ({ show, children }) => {
           maskName: file.name, 
           masks: masks
         });
+
+        reset();
       }
       else {
         const images = await loadTIFF(file);
@@ -98,10 +107,7 @@ export const DragWrapper = ({ show, children }) => {
                 embeddings: embeddings 
               });
 
-              setDragging(false);
-              setFileName(null);
-              setToLoad(null);
-              setLoaded(null);
+              reset();
             }
           });
         }      
@@ -114,10 +120,7 @@ export const DragWrapper = ({ show, children }) => {
         message: error.message
       });
 
-      setDragging(false);
-      setFileName(null);
-      setToLoad(null);
-      setLoaded(null);
+      reset();
     }
   };
 
