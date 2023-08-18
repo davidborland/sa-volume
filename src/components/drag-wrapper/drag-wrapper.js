@@ -4,13 +4,16 @@ import {
   ErrorContext, LoadingError, ERROR_SET_MESSAGE
 } from 'contexts';
 import { DragTarget, LoadingIndicator } from 'components/drag-wrapper';
-import { loadTIFF, getEmbeddings, loadTIFFMask } from 'utils/imageUtils';
+import { loadTIFF, getEmbedding, loadTIFFMask } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [{ images }, dataDispatch] = useContext(DataContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState(null);
+
+  const [toLoad, setToLoad] = useState(null);
+  const [loaded, setLoaded] = useState(null);
 
   const onDragEnter = evt => {
     evt.preventDefault();
@@ -28,6 +31,13 @@ export const DragWrapper = ({ show, children }) => {
     if (!evt.currentTarget.contains(evt.relatedTarget)) {
       setDragging(false);
     }
+  };
+
+  const reset = () => {
+    setDragging(false);
+    setFileName(null);
+    setToLoad(null);
+    setLoaded(null);
   };
 
   const onDrop = async (evt, type) => {
@@ -72,17 +82,35 @@ export const DragWrapper = ({ show, children }) => {
           maskName: file.name, 
           masks: masks
         });
+
+        reset();
       }
       else {
         const images = await loadTIFF(file);
-        const embeddings = await getEmbeddings(images);
 
-        dataDispatch({ 
-          type: DATA_SET_IMAGES, 
-          imageName: file.name, 
-          images: images, 
-          embeddings: embeddings 
-        });
+        setToLoad(images.length);
+        setLoaded(0);
+
+        // Load embeddings and keep track of progress
+        const embeddings = [];
+        for (const image of images) {
+          getEmbedding(image).then(embedding => {
+            embeddings.push(embedding);
+
+            setLoaded(embeddings.length);
+
+            if (embeddings.length === images.length) {
+              dataDispatch({ 
+                type: DATA_SET_IMAGES, 
+                imageName: file.name, 
+                images: images, 
+                embeddings: embeddings 
+              });
+
+              reset();
+            }
+          });
+        }      
       }
     }
     catch (error) {
@@ -91,10 +119,9 @@ export const DragWrapper = ({ show, children }) => {
         heading: error.heading,
         message: error.message
       });
-    }
 
-    setDragging(false);
-    setFileName(null);
+      reset();
+    }
   };
 
   return (
@@ -127,7 +154,7 @@ export const DragWrapper = ({ show, children }) => {
           }}
         >
           { fileName ?
-            <LoadingIndicator fileName={ fileName } />
+            <LoadingIndicator fileName={ fileName } toLoad={ toLoad } loaded={ loaded } />
           :
             <>
               <DragTarget 
