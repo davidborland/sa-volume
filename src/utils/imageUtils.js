@@ -228,15 +228,6 @@ const loadFileToBuffer = file =>
 
     reader.readAsArrayBuffer(file);
   });
-  
-// Decode a Numpy file into a tensor. 
-const loadNpyTensor = async (tensorFile, dType) => {
-  let npLoader = new npyjs();
-  const npArray = await npLoader.load(tensorFile);
-  const tensor = new ort.Tensor(dType, npArray.data, npArray.shape);
-
-  return tensor;
-};
 
 // Load a TIFF image
 export const loadTIFF = async file => {
