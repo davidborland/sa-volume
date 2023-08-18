@@ -1,4 +1,5 @@
 import { Spinner, ProgressBar } from 'react-bootstrap';
+import styles from './styles.module.css';
 
 export const LoadingIndicator = ({ fileName, toLoad = null, loaded = null }) => {
   return (
@@ -31,6 +32,8 @@ export const LoadingIndicator = ({ fileName, toLoad = null, loaded = null }) => 
             SAM embeddings
           </div>
           <ProgressBar 
+            className={ styles.bar }
+            style={{ color: '#adb5bd !important', backgroundColor: '#000', backgroundImage: 'none'}}
             max={ toLoad } 
             now={ loaded } 
           />
