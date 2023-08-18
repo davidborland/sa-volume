@@ -228,29 +228,7 @@ const loadFileToBuffer = file =>
 
     reader.readAsArrayBuffer(file);
   });
-
-// Test data 
-const addNames = imageInfo => {
-  const imageNames = [];
-  const embeddingNames = [];
-
-  const numDigits = String(imageInfo.numImages).length;
-
-  for (let i = 0; i < imageInfo.numImages; i++)  {
-    const n = String(i + 1).padStart(Math.max(2, numDigits), '0');
-    const s = `${ imageInfo.baseName }${ n }`;
-
-    imageNames.push(s + '.png');
-    embeddingNames.push(s + '.npy');
-  }
-
-  return {
-    ...imageInfo,
-    imageNames,
-    embeddingNames
-  };
-}   
-
+  
 // Decode a Numpy file into a tensor. 
 const loadNpyTensor = async (tensorFile, dType) => {
   let npLoader = new npyjs();
