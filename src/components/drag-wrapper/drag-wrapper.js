@@ -4,7 +4,7 @@ import {
   ErrorContext, LoadingError, ERROR_SET_MESSAGE
 } from 'contexts';
 import { DragTarget, LoadingIndicator } from 'components/drag-wrapper';
-import { loadTIFF, getEmbedding, loadTIFFMask } from 'utils/imageUtils';
+import { loadTIFF, getEmbedding, loadTIFFMask, loadEmbeddingsFile } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [{ images }, dataDispatch] = useContext(DataContext);
@@ -46,6 +46,21 @@ export const DragWrapper = ({ show, children }) => {
     const file = evt.dataTransfer.files[0];
 
     try {
+      if (type === 'embeddings') {
+        const embeddings = await loadEmbeddingsFile(file);      
+
+                    dataDispatch({ 
+              type: DATA_SET_IMAGES, 
+              imageName: 'testing.tif', 
+              images: images, 
+              embeddings: embeddings 
+            });  
+
+            reset();
+
+        return;
+      }
+
       // Check file type
       if (file.type !== 'image/tiff') {
         throw new LoadingError(
@@ -169,11 +184,18 @@ export const DragWrapper = ({ show, children }) => {
                 onDrop={ onDrop } 
               />          
               { !show && 
-                <DragTarget 
-                  type='mask'
-                  text='Load mask for current image'
-                  onDrop={ onDrop } 
-                /> 
+                <>
+                  <DragTarget 
+                    type='mask'
+                    text='Load mask for current image'
+                    onDrop={ onDrop } 
+                  /> 
+                  <DragTarget 
+                    type='embeddings'
+                    text='Load embeddings for current image'
+                    onDrop={ onDrop } 
+                  /> 
+                </>
               }
             </>
           }

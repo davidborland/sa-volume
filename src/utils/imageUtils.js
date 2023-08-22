@@ -294,9 +294,43 @@ export const getEmbedding = async image => {
   }
 };
 
-// Get embeddings for an image stack
+// Get embeddings for an image stack from the SAM Server
 export const getEmbeddings = async images => {
-  const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image)));
+  const embeddings = await Promise.all(images.map(image => getEmbedding(image)));
+
+  return embeddings;
+};
+
+// Load embeddings from a file
+export const loadEmbeddingsFile = async file => {
+  const buffer = await loadFileToBuffer(file);
+  const view = new DataView(buffer);
+
+  // Read info from end of file as JSON string
+  const infoArray = [];
+  for (let i = buffer.byteLength - 1; i >= 0; i--) {
+    const value = view.getUint8(i);
+    infoArray.unshift(value);
+
+    // Break on starting brace
+    if (value === 123) break;
+  }
+
+  const info = JSON.parse(new TextDecoder('utf-8').decode(new Uint8Array(infoArray)));
+
+  // Get embeddings
+  const values = new Float32Array(buffer);
+  const size = info.shape[0] * info.shape[1] * info.shape[2] * info.shape[3];
+  const embeddings = [];
+  for (let i = 0; i < info.numSlices; i++) {
+    const slice = new Float32Array(size);
+    
+    for (let j = 0; j < size; j++) {
+      slice[j] = values[i * size + j];
+    }
+
+    embeddings.push(new ort.Tensor(info.dtype, slice, info.shape));
+  }
 
   return embeddings;
 };
@@ -329,7 +363,15 @@ export const saveTIFF = (masks, width, height, fileName) => {
 export const saveEmbeddings = (embeddings, fileName) => {
   if (embeddings?.length === 0) return;
 
-  const data = embeddings.map(tensor => tensor.data);
+  const info = {
+    numSlices: embeddings.length,
+    shape: embeddings[0].dims,
+    dtype: embeddings[0].type
+  }
+  const data = [
+    ...embeddings.map(tensor => tensor.data),
+    JSON.stringify(info)
+  ];
 
   const blob = new Blob(data, { type: 'octet/stream' });
 
