@@ -46,21 +46,6 @@ export const DragWrapper = ({ show, children }) => {
     const file = evt.dataTransfer.files[0];
 
     try {
-      if (type === 'embeddings') {
-        const embeddings = await loadEmbeddingsFile(file);      
-
-                    dataDispatch({ 
-              type: DATA_SET_IMAGES, 
-              imageName: 'testing.tif', 
-              images: images, 
-              embeddings: embeddings 
-            });  
-
-            reset();
-
-        return;
-      }
-
       // Check file type
       if (file.type !== 'image/tiff') {
         throw new LoadingError(
