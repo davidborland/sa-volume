@@ -287,7 +287,11 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
     }
   };
 
-  const onSave = () => {
+  const onSaveEmbeddings = () => {
+    saveEmbeddings(embeddings, getEmbeddingsName(imageName));
+  };
+
+  const onSaveMask = () => {
     savedMasks.current[slice.current] = combineMasks(
       savedMasks.current[slice.current], 
       mask ? applyLabel(mask, label) : null, overWrite.current
@@ -297,7 +301,6 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
     setTempPoints();
 
     saveTIFF(savedMasks.current, imageWidth, imageHeight, getMaskName(imageName));
-    saveEmbeddings(embeddings, getEmbeddingsName(imageName));
   };
 
   return (
@@ -306,7 +309,8 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
         numImages={ numImages }
         slice={ slice.current }
         label={ label }
-        onSave= { onSave }
+        onSaveEmbeddings={ onSaveEmbeddings }
+        onSaveMask={ onSaveMask }
       />
       <DragWrapper show={ images?.length === 0 }>
         <div 

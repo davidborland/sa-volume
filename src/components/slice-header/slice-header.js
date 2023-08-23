@@ -4,7 +4,7 @@ import { SaveButton } from 'components/save-button';
 import { Options } from 'components/options';
 import { ControlDocumentation } from 'components/control-documentation';
 
-export const SliceHeader = ({ numImages, slice, label, onSave }) => {
+export const SliceHeader = ({ numImages, slice, label, onSaveEmbeddings, onSaveMask }) => {
   const noData = numImages === 0;
 
   return (    
@@ -34,10 +34,16 @@ export const SliceHeader = ({ numImages, slice, label, onSave }) => {
         }}
       >
         <SaveButton 
-          disabled={ noData} 
-          onSave={ onSave } 
+          type='embeddings'
+          disabled={ noData } 
+          onSave={ onSaveEmbeddings } 
         />
-        <Options disabled={ noData} />
+        <SaveButton 
+          type='mask'
+          disabled={ noData } 
+          onSave={ onSaveMask } 
+        />
+        <Options disabled={ noData } />
         <ControlDocumentation />
       </div>
     </div>
