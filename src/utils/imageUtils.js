@@ -294,19 +294,48 @@ export const getEmbedding = async image => {
   }
 };
 
-// Get embeddings for an image stack
+// Get embeddings for an image stack from the SAM Server
 export const getEmbeddings = async images => {
-  const embeddings = await Promise.all(images.map((image, i) => getEmbedding(image)));
+  const embeddings = await Promise.all(images.map(image => getEmbedding(image)));
 
   return embeddings;
 };
 
-// Save a TIFF image
-export const saveTIFF = async (masks, width, height, fileName) => {
-  const buffer = encodeTIFF(masks, width, height);
+// Load embeddings from a file
+export const loadEmbeddingsFile = async file => {
+  const buffer = await loadFileToBuffer(file);
+  const view = new DataView(buffer);
 
-  const blob = new Blob([buffer], { type: 'image/tiff' });
+  // Read info from end of file as JSON string
+  const infoArray = [];
+  for (let i = buffer.byteLength - 1; i >= 0; i--) {
+    const value = view.getUint8(i);
+    infoArray.unshift(value);
 
+    // Break on starting brace
+    if (value === 123) break;
+  }
+
+  const info = JSON.parse(new TextDecoder('utf-8').decode(new Uint8Array(infoArray)));
+
+  // Get embeddings
+  const values = new Float32Array(buffer);
+  const size = info.shape[0] * info.shape[1] * info.shape[2] * info.shape[3];
+  const embeddings = [];
+  for (let i = 0; i < info.numSlices; i++) {
+    const slice = new Float32Array(size);
+    
+    for (let j = 0; j < size; j++) {
+      slice[j] = values[i * size + j];
+    }
+
+    embeddings.push(new ort.Tensor(info.dtype, slice, info.shape));
+  }
+
+  return embeddings;
+};
+
+const saveBlob = (blob, fileName) => {
   const url = URL.createObjectURL(blob);
   
   const a = document.createElement('a');
@@ -321,6 +350,55 @@ export const saveTIFF = async (masks, width, height, fileName) => {
   a.remove();
 };
 
+// Save a TIFF image
+export const saveTIFF = (masks, width, height, fileName) => {
+  const buffer = encodeTIFF(masks, width, height);
+
+  const blob = new Blob([buffer], { type: 'image/tiff' });
+  
+  saveBlob(blob, fileName);
+};
+
+// Save embeddings as binary blob
+export const saveEmbeddings = (embeddings, fileName) => {
+  if (embeddings?.length === 0) return;
+
+  const info = {
+    numSlices: embeddings.length,
+    shape: embeddings[0].dims,
+    dtype: embeddings[0].type
+  }
+  const data = [
+    ...embeddings.map(tensor => tensor.data),
+    JSON.stringify(info)
+  ];
+
+  const blob = new Blob(data, { type: 'octet/stream' });
+
+  saveBlob(blob, fileName);
+
+/*
+  // Can't just stringify the full JSON object as it might be too large
+
+  let json = `{ "shape":${ embeddings.dims },"dtype":${ embeddings[0].type },"data":[`;
+  
+  embeddings.forEach(({ data }, i, a) => {
+    json += JSON.stringify(Array.from(data));
+    if (i < a.length - 1) json += ',';
+
+    console.log(json.length)
+  });
+
+  json += ']}';
+
+  console.log(json);
+
+  const blob = new Blob([JSON.stringify(json)], { type: 'application/json' });
+  
+  saveBlob(blob, fileName);
+*/  
+};
+
 // Get name for saving mask
 export const getMaskName = imageName => {
   let i = imageName.lastIndexOf('.');
@@ -328,4 +406,13 @@ export const getMaskName = imageName => {
   if (i < 0) i = imageName.length;
 
   return imageName.slice(0, i) + '_mask' + imageName.slice(i);
+};
+
+// Get name for saving embedding
+export const getEmbeddingsName = imageName => {
+  let i = imageName.lastIndexOf('.');
+  
+  if (i < 0) i = imageName.length;
+
+  return imageName.slice(0, i) + '_embedding.blob';
 };

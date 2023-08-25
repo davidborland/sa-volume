@@ -6,7 +6,8 @@ import { SliceHeader } from 'components/slice-header';
 import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
 import { 
-  applyLabel, combineMasks, getLabel, deleteLabel, saveTIFF, getMaskName 
+  applyLabel, combineMasks, getLabel, deleteLabel, 
+  saveTIFF, getMaskName, saveEmbeddings, getEmbeddingsName
 } from 'utils/imageUtils';
 
 const getRelativePosition = (evt, div) => {
@@ -286,7 +287,11 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
     }
   };
 
-  const onSave = () => {
+  const onSaveEmbeddings = () => {
+    saveEmbeddings(embeddings, getEmbeddingsName(imageName));
+  };
+
+  const onSaveMask = () => {
     savedMasks.current[slice.current] = combineMasks(
       savedMasks.current[slice.current], 
       mask ? applyLabel(mask, label) : null, overWrite.current
@@ -304,7 +309,8 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
         numImages={ numImages }
         slice={ slice.current }
         label={ label }
-        onSave= { onSave }
+        onSaveEmbeddings={ onSaveEmbeddings }
+        onSaveMask={ onSaveMask }
       />
       <DragWrapper show={ images?.length === 0 }>
         <div 

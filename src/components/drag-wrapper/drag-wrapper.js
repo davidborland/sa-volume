@@ -3,15 +3,17 @@ import {
   DataContext, DATA_SET_IMAGES, DATA_SET_MASKS,
   ErrorContext, LoadingError, ERROR_SET_MESSAGE
 } from 'contexts';
-import { DragTarget, LoadingIndicator } from 'components/drag-wrapper';
-import { loadTIFF, getEmbedding, loadTIFFMask } from 'utils/imageUtils';
+import { DragTarget, LoadingIndicator, EmbeddingsPicker } from 'components/drag-wrapper';
+import { loadTIFF, getEmbedding, loadTIFFMask, loadEmbeddingsFile } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [{ images }, dataDispatch] = useContext(DataContext);
   const [, errorDispatch] = useContext(ErrorContext);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState(null);
-
+  const [newImages, setNewImages] = useState(null);
+  const [showEmbeddingsPicker, setShowEmbeddingsPicker] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
   const [toLoad, setToLoad] = useState(null);
   const [loaded, setLoaded] = useState(null);
 
@@ -36,6 +38,9 @@ export const DragWrapper = ({ show, children }) => {
   const reset = () => {
     setDragging(false);
     setFileName(null);
+    setNewImages(null);
+    setShowEmbeddingsPicker(false);
+    setShowLoading(false);
     setToLoad(null);
     setLoaded(null);
   };
@@ -57,6 +62,8 @@ export const DragWrapper = ({ show, children }) => {
       setFileName(file.name);
 
       if (type === 'mask') {
+        showLoading(true);
+
         const { masks, width, height } = await loadTIFFMask(file);
 
         const image = images && images.length > 0 ? images[0] : null;
@@ -87,36 +94,9 @@ export const DragWrapper = ({ show, children }) => {
       }
       else {
         const images = await loadTIFF(file);
+        setNewImages(images);
 
-        // Load embeddings and keep track of progress
-        const embeddings = new Array(images.length);
-        let numLoaded = 0;
-        const handleEmbedding = (embedding, i) => {
-          embeddings[i] = embedding;
-            
-          numLoaded++;
-          setLoaded(numLoaded);
-
-          if (numLoaded === 1) {
-            setToLoad(embeddings.length);
-            setLoaded(1);
-          }
-
-          if (numLoaded === embeddings.length) {
-            dataDispatch({ 
-              type: DATA_SET_IMAGES, 
-              imageName: file.name, 
-              images: images, 
-              embeddings: embeddings 
-            });
-
-            reset();
-          }
-        };
-
-        for (let i = 0; i < embeddings.length; i++) {          
-          getEmbedding(images[i]).then(embedding => handleEmbedding(embedding, i));
-        }      
+        setShowEmbeddingsPicker(true);       
       }
     }
     catch (error) {
@@ -130,55 +110,133 @@ export const DragWrapper = ({ show, children }) => {
     }
   };
 
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        aspectRatio: show ? '1 / 1' : null,
-      }}
-      onDragEnter={ onDragEnter }
-      onDragOver={ onDragOver }
-      onDragLeave={ onDragLeave }
-    >
-      { children }
-      { (show || dragging) && 
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 1,
-            pointerEvents: 'none'
-          }}
-        >
-          { fileName ?
-            <LoadingIndicator fileName={ fileName } toLoad={ toLoad } loaded={ loaded } />
-          :
-            <>
-              <DragTarget 
-                type='image' 
-                text={ show ? 'Drag and drop image' : 'Load new image' }              
-                onDrop={ onDrop } 
-              />          
-              { !show && 
-                <DragTarget 
-                  type='mask'
-                  text='Load mask for current image'
-                  onDrop={ onDrop } 
-                /> 
-              }
-            </>
-          }
-        </div>
+  const onRetrieveEmbeddings = () => {
+    setShowEmbeddingsPicker(false);
+    setShowLoading(true);
+
+    // Retrieve embeddings and keep track of progress
+    const embeddings = new Array(newImages.length);
+    let numLoaded = 0;
+
+    const handleEmbedding = (embedding, i) => {
+      embeddings[i] = embedding;
+        
+      numLoaded++;
+      setLoaded(numLoaded);
+
+      if (numLoaded === 1) {
+        setToLoad(embeddings.length);
+        setLoaded(1);
       }
-    </div>
+
+      if (numLoaded === embeddings.length) {
+        dataDispatch({ 
+          type: DATA_SET_IMAGES, 
+          imageName: fileName, 
+          images: newImages, 
+          embeddings: embeddings 
+        });
+
+        reset();
+      }
+    };
+
+    for (let i = 0; i < embeddings.length; i++) {          
+      getEmbedding(newImages[i]).then(embedding => handleEmbedding(embedding, i));
+    }      
+  };
+
+  const onLoadEmbeddings = async file => {
+    setShowEmbeddingsPicker(false);
+    setShowLoading(true);
+
+    try {
+      const embeddings = await loadEmbeddingsFile(file);      
+
+      if (embeddings.length !== newImages.length) {
+        throw new LoadingError(
+          'Slice number mismatch',
+          `Number of embeddings (${ embeddings.length }) does not equal number of image slices (${ newImages.length })`
+        );
+      }
+
+      dataDispatch({ 
+        type: DATA_SET_IMAGES, 
+        imageName: fileName, 
+        images: newImages, 
+        embeddings: embeddings 
+      });  
+
+      reset();
+    }
+    catch (error) {
+      errorDispatch({
+        type: ERROR_SET_MESSAGE,
+        heading: error.heading,
+        message: error.message
+      });
+
+      reset();
+    }
+  };
+
+  return (
+    <>
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: show ? '1 / 1' : null,
+        }}
+        onDragEnter={ onDragEnter }
+        onDragOver={ onDragOver }
+        onDragLeave={ onDragLeave }
+      >
+        { children }
+        { (show || dragging || showEmbeddingsPicker) && 
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              background: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 1,
+              pointerEvents: 'none'
+            }}
+          >
+            { showLoading ?
+              <LoadingIndicator fileName={ fileName } toLoad={ toLoad } loaded={ loaded } />
+            :
+              <>
+                <DragTarget 
+                  type='image' 
+                  text={ show ? 'Drag and drop image' : 'Load new image' }              
+                  onDrop={ onDrop } 
+                />          
+                { !show && 
+                  <DragTarget 
+                    type='mask'
+                    text='Load mask for current image'
+                    onDrop={ onDrop } 
+                  /> 
+                }
+              </>
+            }
+          </div>
+        }
+        <EmbeddingsPicker 
+          show={ showEmbeddingsPicker } 
+          onRetrieve={ onRetrieveEmbeddings }
+          onLoad={ onLoadEmbeddings }
+          onHide={ reset }
+        />
+      </div>
+    </>
   );
 };
