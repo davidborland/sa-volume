@@ -11,7 +11,7 @@ export const SaveButton = ({ type, disabled, onSave }) => {
 
   const onMouseLeave = () => {
     setShowTooltip(false);
-  }
+  };
 
   return (
     <div
