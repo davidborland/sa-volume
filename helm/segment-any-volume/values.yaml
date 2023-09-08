@@ -17,13 +17,13 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
   hosts:
-    - host: segment-any-volume.apps.renci.org
+    - host: sav.apps.renci.org
       paths:
         - path: /
   tls:
-    - secretName: segment-any-volume.apps.renci.org-tls
+    - secretName: sav.apps.renci.org-tls
       hosts:
-        - segment-any-volume.apps.renci.org
+        - sav.apps.renci.org
 
 resources: {}
 #resources:
