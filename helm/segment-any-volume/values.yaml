@@ -25,10 +25,10 @@ ingress:
       hosts:
         - segment-any-volume.apps.renci.org
 
-# TODO: Tune these based on usage
-resources:
-  requests:
-    cpu: 100m
-    memory: 100Mi
-  limits:
-    memory: 200Mi
+resources: {}
+#resources:
+#  requests:
+#    cpu: 100m
+#    memory: 100Mi
+#  limits:
+#    memory: 200Mi
