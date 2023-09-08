@@ -49,14 +49,3 @@ Selector labels
 app.kubernetes.io/name: {{ include "segment-any-volume.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "segment-any-volume.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "segment-any-volume.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
