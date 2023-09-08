@@ -11,7 +11,7 @@ export const SaveButton = ({ type, disabled, onSave }) => {
 
   const onMouseLeave = () => {
     setShowTooltip(false);
-  }
+  };
 
   return (
     <div
@@ -35,14 +35,13 @@ export const SaveButton = ({ type, disabled, onSave }) => {
           top: '100%',
           left: '50%',
           transform: 'translate(-50%, 0)',
-          width: '100vw',
           textAlign: 'center',
           pointerEvents: 'none',
           zIndex: 1,
           textShadow: '1px 1px 2px black'
         }}
       >
-        Save { type }
+        Save&nbsp;{ type }
       </div>
     </div>
   );
