@@ -1,3 +1,4 @@
+import npyjs from 'npyjs';
 import { clamp } from 'utils/array';
 import { getLabelColor } from 'utils/colors';
 import { rescale } from 'utils/math';
@@ -333,6 +334,47 @@ export const loadEmbeddingsFile = async file => {
   }
 
   return embeddings;
+};
+
+// Get embedding from ninjato api
+export const getNinjatoEmbeddings = async () => {
+  // Hard-coded values for testing
+  const baseUrl = 'http://127.0.01:8080/api/v1'
+  const numSlices = 64;
+  const subvolumeId = '632225486d26433b0c3d7b0d';
+
+  try {
+    const promises = [];
+    for (let i = 0; i < numSlices; i++) {
+      promises.push(async () => {
+        const params = { slice_no: i };
+
+        const sliceResponse = await fetch(`${ baseUrl }/item/${ subvolumeId }/subvolume_slice_embedding?${ new URLSearchParams(params).toString()}`);
+        const sliceData = await sliceResponse.json();
+
+        const fileResponse = await fetch(`${ baseUrl }/file/${ sliceData.file_id }/download`, { responseType: 'blob' });
+        const fileData = await fileResponse.blob();
+
+        const url = URL.createObjectURL(fileData);
+
+        const npLoader = new npyjs();
+        const array = await npLoader.load(url);
+
+        return array;
+      });
+    }
+
+    const npArrays = await Promise.all(promises.map(promise => promise()));
+
+    const tensors = npArrays.map(array => new ort.Tensor(array.dtype, array.data, array.shape));
+
+    return tensors;
+  }
+  catch (err) {
+    console.log(err);
+    console.log('Error loading embeddings');
+    return null;
+  }
 };
 
 const saveBlob = (blob, fileName) => {
