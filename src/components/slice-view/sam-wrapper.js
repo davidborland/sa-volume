@@ -7,8 +7,7 @@ import { DragWrapper } from 'components/drag-wrapper';
 import { clamp, combineArrays } from 'utils/array';
 import { 
   applyLabel, combineMasks, getLabel, deleteLabel, 
-  saveTIFF, getMaskName, saveEmbeddings, getEmbeddingsName, getNinjatoEmbeddings,
-  loadEmbeddingsFile
+  saveTIFF, getMaskName, saveEmbeddings, getEmbeddingsName
 } from 'utils/imageUtils';
 
 const getRelativePosition = (evt, div) => {
@@ -35,21 +34,6 @@ export const SamWrapper = ({ imageName, images, embeddings, masks }) => {
   const [displayMask, setDisplayMask] = useState();
   const [label, setLabel] =  useState(1);
   const [overWrite, setOverWrite] = useState(false);
-
-
-
-  // XXX: TESTING
-  useEffect(() => {
-    const testEmbeddings = async () => {
-      const ninjatoEmbeddings = await getNinjatoEmbeddings();
-
-      console.log(ninjatoEmbeddings);
-    }
-
-    testEmbeddings();
-  }, []);
-
-
 
   // Image info
   const numImages = images ? images.length : 0;

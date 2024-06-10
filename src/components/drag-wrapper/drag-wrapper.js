@@ -4,7 +4,7 @@ import {
   ErrorContext, LoadingError, ERROR_SET_MESSAGE
 } from 'contexts';
 import { DragTarget, LoadingIndicator, EmbeddingsPicker } from 'components/drag-wrapper';
-import { loadTIFF, getEmbedding, loadTIFFMask, loadEmbeddingsFile } from 'utils/imageUtils';
+import { loadTIFF, getEmbedding, loadTIFFMask, loadEmbeddingsFile, getNinjatoEmbeddings } from 'utils/imageUtils';
 
 export const DragWrapper = ({ show, children }) => {
   const [{ images }, dataDispatch] = useContext(DataContext);
@@ -151,7 +151,9 @@ export const DragWrapper = ({ show, children }) => {
     setShowLoading(true);
 
     try {
-      const embeddings = await loadEmbeddingsFile(file);      
+      // XXX: Load from ninjato
+      //const embeddings = await loadEmbeddingsFile(file);      
+      const embeddings = await getNinjatoEmbeddings();
 
       if (embeddings.length !== newImages.length) {
         throw new LoadingError(
